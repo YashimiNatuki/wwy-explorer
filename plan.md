@@ -18,7 +18,8 @@ Pretvoriti sirovi Streamlit Web Explorer u samostalan research cockpit za napred
 - **Signature color:** Orc Lime `#c8ff3d`.
 
 ## Struktura
-- `web_explorer.py`: Streamlit shell, settings, demo/live adapter, query history i UI.
+- `web_explorer.py`: Streamlit shell, settings, demo/live adapter, query history, agent telemetry i UI.
+- `analysis_engine.py`: bounded Scout / Forensics / Skeptic / Synthesizer / Report Smith pipeline i Markdown report builder.
 - `.streamlit/config.toml`: dark theme i server podešavanja.
 - `requirements.txt`: kompatibilne runtime zavisnosti.
 - `README.md`: setup, bezbedno podešavanje ključeva, demo i live režim.

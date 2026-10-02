@@ -9,6 +9,8 @@ from typing import Any
 
 import streamlit as st
 
+from analysis_engine import build_report, run_agent_pipeline
+
 APP_NAME = "WWY// EXPLORER"
 SIGNATURE = "CYBER ULTRA ORC COW"
 EXAMPLES = [
@@ -90,6 +92,17 @@ def inject_styles() -> None:
         div[data-testid="stTextInput"] input { background:#0c1112; border:1px solid #304043; border-radius:0; color:var(--text); font-family:'DM Mono',monospace; }
         div[data-testid="stTextInput"] input:focus { border-color:var(--lime); box-shadow:0 0 0 1px var(--lime); }
         div[data-testid="stAlert"] { border-radius:0; }
+        .agent-grid { display:grid; grid-template-columns:repeat(5,1fr); gap:.55rem; margin:1rem 0 1.4rem; }
+        .agent-card { position:relative; min-height:126px; border:1px solid var(--line); padding:.72rem; background:linear-gradient(150deg,rgba(255,255,255,.045),rgba(255,255,255,.01)); overflow:hidden; animation:agentIn .45s both; }
+        .agent-card:after { content:""; position:absolute; width:90px; height:90px; right:-38px; bottom:-42px; border:1px solid rgba(200,255,61,.16); border-radius:50%; box-shadow:0 0 0 12px rgba(200,255,61,.03),0 0 0 24px rgba(200,255,61,.02); }
+        .agent-card.cyan { border-top:2px solid var(--cyan); }.agent-card.amber { border-top:2px solid var(--amber); }.agent-card.violet { border-top:2px solid #b39cff; }.agent-card.red { border-top:2px solid var(--red); }.agent-card.lime { border-top:2px solid var(--lime); }
+        .agent-seq { color:var(--muted); font:9px 'DM Mono',monospace; }.agent-name { color:var(--text); font:600 11px 'DM Mono',monospace; letter-spacing:.08em; margin-top:.55rem; }.agent-role { color:var(--muted); font-size:.68rem; line-height:1.25; margin-top:.25rem; }.agent-state { color:var(--lime); font:8px 'DM Mono',monospace; position:absolute; right:.65rem; top:.72rem; }.agent-output { color:#b9c5c0; font-size:.7rem; line-height:1.3; margin-top:.7rem; max-width:190px; }
+        .agent-progress { height:2px; background:#27302f; margin-top:.7rem; }.agent-progress span { display:block; height:100%; background:var(--lime); box-shadow:0 0 12px var(--lime); animation:scanPulse 2s ease-in-out infinite; }
+        .orbit-core { position:relative; display:grid; place-items:center; width:112px; height:112px; margin:0 auto 1rem; border:1px solid rgba(200,255,61,.5); border-radius:50%; color:var(--lime); font:500 13px 'DM Mono',monospace; box-shadow:0 0 32px rgba(200,255,61,.13), inset 0 0 25px rgba(200,255,61,.07); }
+        .orbit-core:before,.orbit-core:after { content:""; position:absolute; inset:-12px; border:1px solid rgba(99,230,224,.25); border-radius:50%; transform:rotate(32deg); animation:orbit 8s linear infinite; }.orbit-core:after { inset:-24px; border-color:rgba(255,190,85,.18); transform:rotate(-25deg); animation-duration:11s; animation-direction:reverse; }.orbit-core b { font-size:1.8rem; letter-spacing:-.1em; }.orbit-core small { position:absolute; bottom:14px; font-size:7px; color:var(--muted); letter-spacing:.14em; }
+        .deep-panel { border:1px solid var(--line); background:rgba(16,20,22,.82); padding:1rem; margin-top:1rem; }.deep-panel p { color:#a6b2ad; font-size:.86rem; line-height:1.5; }.confidence-track { height:5px; background:#28302f; margin:.7rem 0; }.confidence-track span { display:block; height:100%; background:linear-gradient(90deg,var(--amber),var(--lime),var(--cyan)); box-shadow:0 0 14px rgba(200,255,61,.4); }.report-chip { display:inline-block; color:var(--lime); border:1px solid rgba(200,255,61,.35); padding:.35rem .55rem; font:9px 'DM Mono',monospace; text-transform:uppercase; }
+        @keyframes agentIn { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:translateY(0); } } @keyframes scanPulse { 0%,100% { opacity:.65; } 50% { opacity:1; } } @keyframes orbit { to { transform:rotate(392deg); } }
+        @media (max-width:1100px) { .agent-grid { grid-template-columns:repeat(3,1fr); } } @media (max-width:650px) { .agent-grid { grid-template-columns:1fr 1fr; } }
         @media (max-width:900px) { .hero-grid { grid-template-columns:1fr; gap:1.2rem; } .telemetry { grid-template-columns:repeat(2,1fr); } .wwy-status { display:none; } }
         @media (prefers-reduced-motion:reduce) { *,*:before,*:after { animation:none!important; transition:none!important; } }
         </style>
@@ -195,6 +208,9 @@ with st.sidebar:
     live_ready = has_live_credentials()
     st.markdown(f'<span class="pill">{"LIVE READY" if live_ready else "DEMO READY"}</span><span class="pill">LOCAL HISTORY</span><span class="pill">SOURCE TRACE</span>', unsafe_allow_html=True)
     st.markdown('<p class="sidebar-copy">WWY never ships API keys in source. Demo mode is intentional: it keeps the cockpit usable before the web provider layer is connected.</p>', unsafe_allow_html=True)
+    st.markdown('<div class="sidebar-title">Agent mesh</div>', unsafe_allow_html=True)
+    st.markdown('<span class="pill">SCOUT</span><span class="pill">FORENSICS</span><span class="pill">SKEPTIC</span><span class="pill">SYNTH</span><span class="pill">REPORT SMITH</span>', unsafe_allow_html=True)
+    st.markdown('<p class="sidebar-copy">Five bounded roles inspect the same evidence envelope. Their trace is rendered after every pass; no hidden background agent is claimed.</p>', unsafe_allow_html=True)
     st.markdown('<div class="sidebar-title">Quick probes</div>', unsafe_allow_html=True)
     for example in EXAMPLES:
         if st.button(example, key=f"example_{example}", use_container_width=True):
@@ -234,7 +250,15 @@ if run and query.strip():
 
 result = st.session_state.result
 if result:
+    analysis = run_agent_pipeline(result["query"], result, depth)
     st.markdown('<div class="telemetry"><div class="metric"><b>' + result["mode"] + '</b><span>runtime mode</span></div><div class="metric"><b>' + str(result["elapsed"]) + 's</b><span>latency</span></div><div class="metric"><b>' + str(len(result.get("sources", []))).zfill(2) + '</b><span>evidence nodes</span></div><div class="metric"><b>' + str(len(st.session_state.history)).zfill(2) + '</b><span>session passes</span></div></div>', unsafe_allow_html=True)
+    st.markdown('<div class="section-label">00 / agent mesh telemetry</div>', unsafe_allow_html=True)
+    cards = []
+    for stage in analysis["stages"]:
+        cards.append(
+            f'<div class="agent-card {stage["accent"]}"><span class="agent-seq">{stage["sequence"]} / MESH</span><span class="agent-state">{stage["status"]}</span><div class="agent-name">{stage["name"]}</div><div class="agent-role">{stage["role"]}</div><div class="agent-output">{html.escape(stage["output"])}</div><div class="agent-progress"><span style="width:{stage["pulse"]}%"></span></div></div>'
+        )
+    st.markdown('<div class="agent-grid">' + "".join(cards) + "</div>", unsafe_allow_html=True)
     left, right = st.columns([1.45, .85], gap="large")
     with left:
         st.markdown('<div class="section-label">01 / synthesized signal</div>', unsafe_allow_html=True)
@@ -243,7 +267,9 @@ if result:
         render_sources(result.get("sources", []))
     with right:
         st.markdown('<div class="section-label">03 / dossier actions</div>', unsafe_allow_html=True)
-        st.download_button("DOWNLOAD DOSSIER", dossier_markdown(result), file_name="wwy-research-dossier.md", mime="text/markdown", use_container_width=True)
+        st.markdown('<div class="orbit-core"><b>WWY</b><small>AGENT MESH</small></div>', unsafe_allow_html=True)
+        st.markdown(f'<div class="deep-panel"><div class="panel-head"><span>Deep analysis confidence</span><strong>{analysis["confidence"]}%</strong></div><div class="confidence-track"><span style="width:{analysis["confidence"]}%"></span></div><p>{html.escape(analysis["thesis"])}</p><span class="report-chip">AUTO REPORT READY</span></div>', unsafe_allow_html=True)
+        st.download_button("DOWNLOAD AUTO REPORT", build_report(result, analysis), file_name="wwy-deep-analysis-dossier.md", mime="text/markdown", use_container_width=True)
         if st.button("NEW SIGNAL", use_container_width=True):
             st.session_state.result = None
             st.rerun()
