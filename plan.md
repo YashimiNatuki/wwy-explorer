@@ -20,6 +20,8 @@ Pretvoriti sirovi Streamlit Web Explorer u samostalan research cockpit za napred
 ## Struktura
 - `web_explorer.py`: Streamlit shell, settings, demo/live adapter, query history, agent telemetry i UI.
 - `analysis_engine.py`: bounded Scout / Forensics / Skeptic / Synthesizer / Report Smith pipeline i Markdown report builder.
+- Forensic depth: source quality ranking, contradiction radar, risk flags i query plan.
+- Locale layer: Crnogorski default, Romani beta i English fallback za Đinđere Minđere.
 - `.streamlit/config.toml`: dark theme i server podešavanja.
 - `requirements.txt`: kompatibilne runtime zavisnosti.
 - `README.md`: setup, bezbedno podešavanje ključeva, demo i live režim.

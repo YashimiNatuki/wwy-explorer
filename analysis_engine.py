@@ -4,6 +4,7 @@ import re
 from dataclasses import dataclass
 from datetime import datetime
 from typing import Any
+from urllib.parse import urlparse
 
 
 @dataclass(frozen=True)
@@ -32,6 +33,17 @@ def _source_count(result: dict[str, Any]) -> int:
     return len(result.get("sources", []))
 
 
+def _source_quality(result: dict[str, Any]) -> list[dict[str, Any]]:
+    quality = []
+    for index, source in enumerate(result.get("sources", []), 1):
+        url = source.get("url", "")
+        domain = urlparse(url).netloc.replace("www.", "") or "local-artifact"
+        score = min(98, 58 + (14 if domain.endswith(".gov") or domain.endswith(".edu") else 7 if domain.endswith(".org") else 0) + max(0, 12 - index * 2))
+        label = "PRIMARY" if score >= 80 else "SECONDARY"
+        quality.append({"rank": index, "domain": domain, "score": score, "label": label, "title": source.get("title", "Untitled source")})
+    return quality
+
+
 def run_agent_pipeline(question: str, result: dict[str, Any], depth: str = "Deep") -> dict[str, Any]:
     """Run a bounded, inspectable multi-agent pass over one research result.
 
@@ -42,11 +54,21 @@ def run_agent_pipeline(question: str, result: dict[str, Any], depth: str = "Deep
     terms = _tokens(question)
     sources = _source_count(result)
     mode = result.get("mode", "DEMO")
-    confidence = min(96, 52 + sources * 9 + (12 if mode == "LIVE" else 0) + (8 if depth == "Deep" else 0))
+    confidence = min(96, 52 + sources * 9 + (12 if mode == "LIVE" else 0) + (8 if depth == "Deep" else 0) + (12 if depth == "Forensic" else 0))
     term_line = " · ".join(terms[:5]) or "no stable entities extracted"
     answer = str(result.get("answer", "")).replace("\n", " ").strip()
     answer_hint = answer[:150] + ("…" if len(answer) > 150 else "")
     caveat = "Provider-backed evidence is available, but source quality still needs human review." if mode == "LIVE" else "Demo evidence is simulated; connect providers before treating this as a factual briefing."
+    source_quality = _source_quality(result)
+    contradictions = [
+        "Evidence count alone is not consensus; source independence is still unverified.",
+        "A confident synthesis can still inherit a blind spot from the query wording.",
+    ] if depth in ("Deep", "Forensic") else ["Scout pass has not run a contradiction sweep."]
+    risk_flags = [
+        "SIMULATED_EVIDENCE" if mode != "LIVE" else "PROVIDER_DEPENDENCY",
+        "HUMAN_REVIEW_REQUIRED",
+        "QUERY_BIAS_POSSIBLE",
+    ]
 
     outputs = {
         "scout": f"Expanded target into {len(terms)} query atoms: {term_line}.",
@@ -78,6 +100,10 @@ def run_agent_pipeline(question: str, result: dict[str, Any], depth: str = "Deep
         "thesis": outputs["synth"],
         "caveat": caveat,
         "answer_hint": answer_hint,
+        "query_plan": [f"Locate primary evidence for: {term}" for term in terms[:4]] or ["Clarify target and rerun with a more specific query."],
+        "source_quality": source_quality,
+        "contradictions": contradictions,
+        "risk_flags": risk_flags,
         "generated_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
     }
 
@@ -109,8 +135,15 @@ def build_report(result: dict[str, Any], analysis: dict[str, Any]) -> str:
     ]
     for stage in analysis["stages"]:
         lines.extend([f"### {stage['sequence']} / {stage['name']}", "", f"**Role:** {stage['role']}", "", stage["output"], ""])
-    lines.extend(["## Uncertainty boundary", "", analysis["caveat"], "", "## Evidence nodes", ""])
+    lines.extend(["## Uncertainty boundary", "", analysis["caveat"], "", "## Contradiction radar", ""])
+    lines.extend(f"- {item}" for item in analysis["contradictions"])
+    lines.extend(["", "## Risk flags", ""])
+    lines.extend(f"- `{item}`" for item in analysis["risk_flags"])
+    lines.extend(["", "## Query plan", ""])
+    lines.extend(f"- {item}" for item in analysis["query_plan"])
+    lines.extend(["", "## Evidence nodes", ""])
     for index, source in enumerate(sources, 1):
-        lines.append(f"{index}. [{source.get('title', 'Untitled source')}]({source.get('url', '')}) — {source.get('meta', 'evidence record')}")
+        quality = analysis["source_quality"][index - 1] if index <= len(analysis["source_quality"]) else {"score": "n/a", "label": "UNRANKED"}
+        lines.append(f"{index}. [{source.get('title', 'Untitled source')}]({source.get('url', '')}) — {source.get('meta', 'evidence record')} · {quality['label']} {quality['score']}/100")
     lines.extend(["", "## Next moves", "", "1. Verify the strongest source node.", "2. Challenge the thesis with a counter-query.", "3. Re-run in Deep mode before making a high-impact decision."])
     return "\n".join(lines)

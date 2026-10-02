@@ -36,3 +36,7 @@ Nova verzija ima WWY// command-center shell, Cyber Ultra Orc Cow branding, telem
 Posle svakog research pass-a, `analysis_engine.py` pokreće pet transparentnih, bounded uloga nad istim result envelope-om: **Scout**, **Forensics**, **Skeptic**, **Synthesizer** i **Report Smith**. UI prikazuje svaku fazu, njen output, confidence telemetry i uncertainty boundary. U Demo režimu agenti su deterministički i rade nad jasno označenim simuliranim signalom; u Live režimu rade nad stvarno vraćenim odgovorom i source records.
 
 `DOWNLOAD AUTO REPORT` generiše Markdown dossier sa executive signalom, radnom tezom, kompletnim agent trace-om, evidence nodovima i sledećim potezima. Ovo je namerno inspectable: nema skrivenih background agenata i nema tvrdnje da je demo signal pretražio web.
+
+## Maksimalni research režim
+
+Sidebar sada nudi tri dubine: **Scout**, **Deep** i **Forensic**. Forensic dodaje source-quality ranking, contradiction radar, query plan i risk flags. Jezički sloj je podrazumevano **Crnogorski**, uz **Romani (beta)** za postepenu lokalizaciju Đinđere Minđere sistema i English fallback. Romani terminologija je jasno označena kao beta da se ne bi izmišljala lokalna varijanta jezika bez ljudske revizije.

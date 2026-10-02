@@ -18,6 +18,11 @@ EXAMPLES = [
     "Compare WebAssembly runtimes for edge applications.",
     "Find the strongest evidence for small language model reasoning.",
 ]
+LOCALE_COPY = {
+    "Crnogorski": {"subtitle": "istraživački kokpit za napredne korisnike", "query": "istraživački upit", "run": "POKRENI ISTRAŽIVANJE  →", "empty": "NEMA AKTIVNOG SIGNALA", "empty_copy": "Unesi pitanje ili izaberi brzu probu. Forensic režim razdvaja dokaz, rizik i neizvjesnost.", "report": "PREUZMI AUTOMATSKI IZVJEŠTAJ", "demo": "demo mreža online", "hero_a": "PRESIJEČI", "hero_b": "ŠUM.", "hero_copy": "Pretraži, pročitaj i sabij web u dossier sa tragom izvora. Bez lažne sigurnosti. Samo oštriji kokpit za ljude koji traže signal."},
+    "Romani (beta)": {"subtitle": "Đinđere Minđere · Romani jezički sloj u beta fazi", "query": "istraživački upit / Romani beta", "run": "POKRENI ISTRAŽIVANJE  →", "empty": "NEMA AKTIVNOG SIGNALA", "empty_copy": "Romani terminologija se uvodi postepeno; pregledaj rezultate i označi izraze za dalju lokalizaciju.", "report": "PREUZMI AUTOMATSKI IZVJEŠTAJ", "demo": "demo mreža online", "hero_a": "PRESIJEČI", "hero_b": "ŠUM.", "hero_copy": "Đinđere Minđere jezički sloj je u beta fazi. Rezultati ostaju transparentni i spremni za ljudsku jezičku reviziju."},
+    "English": {"subtitle": "research cockpit for advanced users", "query": "research query", "run": "RUN RESEARCH  →", "empty": "NO ACTIVE SIGNAL", "empty_copy": "Enter a question or choose a quick probe. Forensic mode separates evidence, risk and uncertainty.", "report": "DOWNLOAD AUTO REPORT", "demo": "demo mesh online", "hero_a": "CUT THROUGH", "hero_b": "THE NOISE.", "hero_copy": "Search, read and compress the web into a source-aware dossier. No fake certainty. No hidden keys. Just a sharper cockpit for people who want the signal."},
+}
 
 st.set_page_config(
     page_title="WWY// Explorer — Cyber Ultra Orc Cow",
@@ -100,7 +105,7 @@ def inject_styles() -> None:
         .agent-progress { height:2px; background:#27302f; margin-top:.7rem; }.agent-progress span { display:block; height:100%; background:var(--lime); box-shadow:0 0 12px var(--lime); animation:scanPulse 2s ease-in-out infinite; }
         .orbit-core { position:relative; display:grid; place-items:center; width:112px; height:112px; margin:0 auto 1rem; border:1px solid rgba(200,255,61,.5); border-radius:50%; color:var(--lime); font:500 13px 'DM Mono',monospace; box-shadow:0 0 32px rgba(200,255,61,.13), inset 0 0 25px rgba(200,255,61,.07); }
         .orbit-core:before,.orbit-core:after { content:""; position:absolute; inset:-12px; border:1px solid rgba(99,230,224,.25); border-radius:50%; transform:rotate(32deg); animation:orbit 8s linear infinite; }.orbit-core:after { inset:-24px; border-color:rgba(255,190,85,.18); transform:rotate(-25deg); animation-duration:11s; animation-direction:reverse; }.orbit-core b { font-size:1.8rem; letter-spacing:-.1em; }.orbit-core small { position:absolute; bottom:14px; font-size:7px; color:var(--muted); letter-spacing:.14em; }
-        .deep-panel { border:1px solid var(--line); background:rgba(16,20,22,.82); padding:1rem; margin-top:1rem; }.deep-panel p { color:#a6b2ad; font-size:.86rem; line-height:1.5; }.confidence-track { height:5px; background:#28302f; margin:.7rem 0; }.confidence-track span { display:block; height:100%; background:linear-gradient(90deg,var(--amber),var(--lime),var(--cyan)); box-shadow:0 0 14px rgba(200,255,61,.4); }.report-chip { display:inline-block; color:var(--lime); border:1px solid rgba(200,255,61,.35); padding:.35rem .55rem; font:9px 'DM Mono',monospace; text-transform:uppercase; }
+        .deep-panel { border:1px solid var(--line); background:rgba(16,20,22,.82); padding:1rem; margin-top:1rem; }.deep-panel p { color:#a6b2ad; font-size:.86rem; line-height:1.5; }.confidence-track { height:5px; background:#28302f; margin:.7rem 0; }.confidence-track span { display:block; height:100%; background:linear-gradient(90deg,var(--amber),var(--lime),var(--cyan)); box-shadow:0 0 14px rgba(200,255,61,.4); }.report-chip,.risk-chip { display:inline-block; color:var(--lime); border:1px solid rgba(200,255,61,.35); padding:.35rem .55rem; font:9px 'DM Mono',monospace; text-transform:uppercase; margin:.15rem .15rem .15rem 0; }.risk-chip { color:var(--amber); border-color:rgba(255,190,85,.35); }.qa-grid { display:grid; grid-template-columns:1fr 1fr; gap:.7rem; }.qa-box { border:1px solid var(--line); background:rgba(255,255,255,.018); padding:.85rem; }.qa-box h4 { color:var(--cyan); font:10px 'DM Mono',monospace; text-transform:uppercase; letter-spacing:.1em; margin:0 0 .7rem; }.quality-row,.plan-item { display:flex; justify-content:space-between; gap:.6rem; padding:.42rem 0; border-bottom:1px solid rgba(255,255,255,.06); color:#aebbb5; font-size:.72rem; }.quality-row b { color:var(--lime); font:9px 'DM Mono',monospace; }.plan-item { display:block; }.plan-item:before { content:'› '; color:var(--lime); font-family:'DM Mono',monospace; }
         @keyframes agentIn { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:translateY(0); } } @keyframes scanPulse { 0%,100% { opacity:.65; } 50% { opacity:1; } } @keyframes orbit { to { transform:rotate(392deg); } }
         @media (max-width:1100px) { .agent-grid { grid-template-columns:repeat(3,1fr); } } @media (max-width:650px) { .agent-grid { grid-template-columns:1fr 1fr; } }
         @media (max-width:900px) { .hero-grid { grid-template-columns:1fr; gap:1.2rem; } .telemetry { grid-template-columns:repeat(2,1fr); } .wwy-status { display:none; } }
@@ -186,6 +191,18 @@ def render_sources(sources: list[dict[str, str]]) -> None:
         st.markdown(f'<div class="source-card">{link}<small>{meta}</small></div>', unsafe_allow_html=True)
 
 
+def render_forensic_panel(analysis: dict[str, Any]) -> None:
+    quality_rows = "".join(
+        f'<div class="quality-row"><span>{html.escape(item["domain"])}</span><b>{item["label"]} {item["score"]}/100</b></div>'
+        for item in analysis.get("source_quality", [])
+    ) or '<div class="quality-row"><span>no source nodes</span><b>UNRANKED</b></div>'
+    contradiction_rows = "".join(f'<div class="plan-item">{html.escape(item)}</div>' for item in analysis.get("contradictions", []))
+    query_rows = "".join(f'<div class="plan-item">{html.escape(item)}</div>' for item in analysis.get("query_plan", []))
+    risks = "".join(f'<span class="risk-chip">{html.escape(item)}</span>' for item in analysis.get("risk_flags", []))
+    st.markdown('<div class="section-label">02B / forensic QA</div>', unsafe_allow_html=True)
+    st.markdown(f'<div class="qa-grid"><div class="qa-box"><h4>source quality radar</h4>{quality_rows}</div><div class="qa-box"><h4>contradiction radar</h4>{contradiction_rows}</div><div class="qa-box"><h4>query plan</h4>{query_rows}</div><div class="qa-box"><h4>risk flags</h4><div>{risks}</div></div></div>', unsafe_allow_html=True)
+
+
 def dossier_markdown(result: dict[str, Any]) -> str:
     lines = [f"# WWY// Research Dossier", "", f"- Query: {result['query']}", f"- Mode: {result['mode']}", f"- Elapsed: {result['elapsed']}s", "", "## Signal", "", result["answer"], "", "## Evidence", ""]
     lines.extend(f"- {item.get('title')} — {item.get('url', '')}" for item in result.get("sources", []))
@@ -199,11 +216,14 @@ if "history" not in st.session_state:
 if "result" not in st.session_state:
     st.session_state.result = None
 
+locale = st.sidebar.selectbox("Language layer / jezički sloj", list(LOCALE_COPY), index=0)
+copy = LOCALE_COPY[locale]
+
 with st.sidebar:
     st.markdown('<div class="wwy-mark">WWY</div>', unsafe_allow_html=True)
     st.markdown('<div class="sidebar-title">Runtime controls</div>', unsafe_allow_html=True)
     mode = st.selectbox("Signal mode", ["Auto", "Demo", "Live"], index=0, help="Auto uses live mode only when all provider credentials are configured.")
-    depth = st.radio("Research depth", ["Scout", "Deep"], horizontal=True)
+    depth = st.radio("Research depth", ["Scout", "Deep", "Forensic"], horizontal=True)
     st.markdown('<div class="sidebar-title">Capability matrix</div>', unsafe_allow_html=True)
     live_ready = has_live_credentials()
     st.markdown(f'<span class="pill">{"LIVE READY" if live_ready else "DEMO READY"}</span><span class="pill">LOCAL HISTORY</span><span class="pill">SOURCE TRACE</span>', unsafe_allow_html=True)
@@ -226,15 +246,15 @@ with st.sidebar:
         st.rerun()
 
 st.markdown(
-    '<div class="wwy-top"><div class="wwy-brand"><div class="wwy-mark">WWY</div><div><div class="wwy-word">WWY<span>//</span> EXPLORER</div><div class="wwy-sub">cyber ultra orc cow · research cockpit</div></div></div><div class="wwy-status"><span class="dot ' + ("" if live_ready else "demo") + '"></span>' + ("provider mesh online" if live_ready else "demo mesh online") + ' <span>v.3.0</span></div></div>',
+    '<div class="wwy-top"><div class="wwy-brand"><div class="wwy-mark">WWY</div><div><div class="wwy-word">WWY<span>//</span> EXPLORER</div><div class="wwy-sub">ĐINĐERE MINĐERE · ' + copy["subtitle"] + '</div></div></div><div class="wwy-status"><span class="dot ' + ("" if live_ready else "demo") + '"></span>' + ("provider mesh online" if live_ready else copy["demo"]) + ' <span>v.4.0</span></div></div>',
     unsafe_allow_html=True,
 )
 
-st.markdown('<div class="hero-grid"><div class="wwy-hero"><div class="eyebrow">◈ signal intake / 001</div><h1>CUT THROUGH<br /><em>THE NOISE.</em></h1><p>Search, read and compress the web into a source-aware dossier. No fake certainty. No hidden keys. Just a sharper cockpit for people who want the signal.</p></div><div class="signal-card"><div class="signal-label">ORC COW // CORE STATUS</div><div class="signal-value">READY_</div><div class="signal-detail">The interface runs in demo mode without credentials, then upgrades to live retrieval when the provider mesh is connected.</div></div></div>', unsafe_allow_html=True)
+st.markdown(f'<div class="hero-grid"><div class="wwy-hero"><div class="eyebrow">◈ signal intake / 001</div><h1>{copy["hero_a"]}<br /><em>{copy["hero_b"]}</em></h1><p>{copy["hero_copy"]}</p></div><div class="signal-card"><div class="signal-label">ORC COW // CORE STATUS</div><div class="signal-value">READY_</div><div class="signal-detail">The interface runs in demo mode without credentials, then upgrades to live retrieval when the provider mesh is connected.</div></div></div>', unsafe_allow_html=True)
 
-st.markdown('<div class="query-box"><div class="query-prefix">WWY://research --target web --depth ' + depth.lower() + '</div>', unsafe_allow_html=True)
-query = st.text_input("Research query", key="query", placeholder="Ask a question worth tracing…", label_visibility="collapsed")
-run = st.button("RUN RESEARCH  →", type="primary", use_container_width=False)
+st.markdown('<div class="query-box"><div class="query-prefix">WWY://research --target web --depth ' + depth.lower() + ' --lang ' + locale.lower().replace(" ", "-") + '</div>', unsafe_allow_html=True)
+query = st.text_input(copy["query"], key="query", placeholder="Ask a question worth tracing…", label_visibility="collapsed")
+run = st.button(copy["run"], type="primary", use_container_width=False)
 st.markdown('</div>', unsafe_allow_html=True)
 
 if run and query.strip():
@@ -265,16 +285,17 @@ if result:
         st.markdown(f'<div class="panel"><div class="answer">{result["answer"]}</div></div>', unsafe_allow_html=True)
         st.markdown('<div class="section-label">02 / evidence trace</div>', unsafe_allow_html=True)
         render_sources(result.get("sources", []))
+        render_forensic_panel(analysis)
     with right:
         st.markdown('<div class="section-label">03 / dossier actions</div>', unsafe_allow_html=True)
         st.markdown('<div class="orbit-core"><b>WWY</b><small>AGENT MESH</small></div>', unsafe_allow_html=True)
         st.markdown(f'<div class="deep-panel"><div class="panel-head"><span>Deep analysis confidence</span><strong>{analysis["confidence"]}%</strong></div><div class="confidence-track"><span style="width:{analysis["confidence"]}%"></span></div><p>{html.escape(analysis["thesis"])}</p><span class="report-chip">AUTO REPORT READY</span></div>', unsafe_allow_html=True)
-        st.download_button("DOWNLOAD AUTO REPORT", build_report(result, analysis), file_name="wwy-deep-analysis-dossier.md", mime="text/markdown", use_container_width=True)
+        st.download_button(copy["report"], build_report(result, analysis), file_name="wwy-deep-analysis-dossier.md", mime="text/markdown", use_container_width=True)
         if st.button("NEW SIGNAL", use_container_width=True):
             st.session_state.result = None
             st.rerun()
         st.markdown('<div class="panel"><div class="panel-head"><span>Current target</span><strong>LOCKED</strong></div><p class="sidebar-copy">' + html.escape(result["query"]) + '</p><p class="sidebar-copy">Mode: ' + html.escape(result["mode"]) + '<br />Depth: ' + html.escape(depth) + '</p></div>', unsafe_allow_html=True)
 else:
-    st.markdown('<div class="empty-state"><div class="big">◈_</div><h3>NO ACTIVE SIGNAL</h3><p>Unesi pitanje ili odaberi quick probe. Ako nemaš ključeve, demo signal će ti pokazati ceo tok bez lažnog pretvaranja da je web pretražen.</p></div>', unsafe_allow_html=True)
+    st.markdown(f'<div class="empty-state"><div class="big">◈_</div><h3>{copy["empty"]}</h3><p>{copy["empty_copy"]}</p></div>', unsafe_allow_html=True)
 
 st.markdown('<div class="footer"><span>WWY// explorer · cyber ultra orc cow</span><span>truthful telemetry // local-first by default</span></div>', unsafe_allow_html=True)
