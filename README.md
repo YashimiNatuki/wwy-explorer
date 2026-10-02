@@ -1,36 +1,32 @@
-# Web Explorer
+# WWY// Explorer — Cyber Ultra Orc Cow
 
-This is a lightweight app using the [Web Research Retriever](https://github.com/langchain-ai/langchain/pull/8102).
+WWY// Explorer je research cockpit za napredne korisnike: uneseš pitanje, dobiješ sažet signal, trag izvora i dossier koji možeš da sačuvaš. Interfejs radi odmah u **Demo** režimu, bez ključeva, a prelazi u live web research kada su Google CSE i OpenAI promenljive podešene.
 
-## Setup
-You only need to supply a few things.
+## Pokretanje
 
-In `settings()` function, supply:
-
-* Search: Select the search tool you want to use (e.g., GoogleSearchAPIWrapper). 
-* Vectorstore: Select the vectorstore and embeddings you want to use (e.g., Chroma, OpenAIEmbeddings).
-* Select the LLM you want to use (e.g., ChatOpenAI).
-
-To use `st.secrets` set enviorment variables in `.streamlit/secrets.toml` file.
- 
-Or, simply add environemnt variables and remove `st.secrets`: 
-```
-import os
-os.environ["GOOGLE_API_KEY"] = "YOUR_API_KEY"
-os.environ["GOOGLE_CSE_ID"] = "YOUR_CSE_ID" 
-os.environ["OPENAI_API_BASE"] = "https://api.openai.com/v1"
-os.environ["OPENAI_API_KEY"] = "YOUR_API_KEY"
-
-```
-
-For `GOOGLE_API_KEY` , you could get it from [this link](https://console.cloud.google.com/apis/api/customsearch.googleapis.com/credentials).
-
-For `GOOGLE_CSE_ID` , you could get it from [this link](https://programmablesearchengine.google.com/)
-
-## Run
-```
+```bash
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
 streamlit run web_explorer.py
 ```
 
-Example output:
-![example](https://github.com/langchain-ai/web-explorer/assets/122662504/f1383640-d089-492d-8757-ad743d34535f)
+Otvori `http://localhost:8501`.
+
+## Demo i live režim
+
+Demo režim je nameran: prikazuje kompletan tok cockpit-a i jasno označava da izvori nisu live-pretraženi. Za live režim postavi promenljive u shell-u ili Streamlit secrets fajlu; ključevi se ne čuvaju u source kodu:
+
+```bash
+export GOOGLE_API_KEY="..."
+export GOOGLE_CSE_ID="..."
+export OPENAI_API_KEY="..."
+export OPENAI_API_BASE="https://api.openai.com/v1"
+export OPENAI_MODEL="gpt-3.5-turbo-16k"
+```
+
+U sidebar-u izaberi `Auto` ili `Live`. Ako provider sloj nije dostupan, UI ostaje živ i vraća čitljiv connector error umesto da padne cela aplikacija.
+
+## Šta je unapređeno
+
+Nova verzija ima WWY// command-center shell, Cyber Ultra Orc Cow branding, telemetry bar, demo/live status, quick probes, session history, depth switch, source evidence kartice, dossier download i reset. Originalni LangChain WebResearchRetriever tok ostaje kao live adapter, ali više nema hardkodovanih `YOUR_API_KEY` vrednosti.

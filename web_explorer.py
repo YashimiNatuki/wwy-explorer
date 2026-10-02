@@ -1,98 +1,254 @@
-import streamlit as st
-from langchain.callbacks.base import BaseCallbackHandler
-from langchain.chains import RetrievalQAWithSourcesChain
-from langchain.retrievers.web_research import WebResearchRetriever
+from __future__ import annotations
 
+import html
 import os
+import textwrap
+import time
+from datetime import datetime
+from typing import Any
 
-os.environ["GOOGLE_API_KEY"] = "YOUR_API_KEY" # Get it at https://console.cloud.google.com/apis/api/customsearch.googleapis.com/credentials
-os.environ["GOOGLE_CSE_ID"] = "YOUR_CSE_ID" # Get it at https://programmablesearchengine.google.com/
-os.environ["OPENAI_API_BASE"] = "https://api.openai.com/v1"
-os.environ["OPENAI_API_KEY"] = "YOUR_API_KEY" # Get it at https://beta.openai.com/account/api-keys
+import streamlit as st
 
-st.set_page_config(page_title="Interweb Explorer", page_icon="🌐")
+APP_NAME = "WWY// EXPLORER"
+SIGNATURE = "CYBER ULTRA ORC COW"
+EXAMPLES = [
+    "What changed in local-first AI tools this week?",
+    "Compare WebAssembly runtimes for edge applications.",
+    "Find the strongest evidence for small language model reasoning.",
+]
 
-def settings():
+st.set_page_config(
+    page_title="WWY// Explorer — Cyber Ultra Orc Cow",
+    page_icon="◈",
+    layout="wide",
+    initial_sidebar_state="expanded",
+)
 
-    # Vectorstore
-    import faiss
-    from langchain.vectorstores import FAISS 
-    from langchain.embeddings.openai import OpenAIEmbeddings
-    from langchain.docstore import InMemoryDocstore  
-    embeddings_model = OpenAIEmbeddings()  
-    embedding_size = 1536  
-    index = faiss.IndexFlatL2(embedding_size)  
-    vectorstore_public = FAISS(embeddings_model.embed_query, index, InMemoryDocstore({}), {})
 
-    # LLM
-    from langchain.chat_models import ChatOpenAI
-    llm = ChatOpenAI(model_name="gpt-3.5-turbo-16k", temperature=0, streaming=True)
-
-    # Search
-    from langchain.utilities import GoogleSearchAPIWrapper
-    search = GoogleSearchAPIWrapper()   
-
-    # Initialize 
-    web_retriever = WebResearchRetriever.from_llm(
-        vectorstore=vectorstore_public,
-        llm=llm, 
-        search=search, 
-        num_search_results=3
+def inject_styles() -> None:
+    st.markdown(
+        """
+        <style>
+        @import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Space+Grotesk:wght@400;500;600;700&display=swap');
+        :root { --void:#07090a; --panel:#101416; --panel2:#151b1c; --line:#243235; --text:#edf3e9; --muted:#879694; --lime:#c8ff3d; --cyan:#63e6e0; --amber:#ffbe55; --red:#ff5d6c; }
+        html, body, [data-testid="stAppViewContainer"] { background: radial-gradient(circle at 76% -12%, rgba(200,255,61,.08), transparent 28%), var(--void); color:var(--text); }
+        [data-testid="stAppViewContainer"] { font-family:'Space Grotesk', sans-serif; }
+        [data-testid="stHeader"] { background:transparent; }
+        [data-testid="stSidebar"] { background:linear-gradient(180deg, #0b1011, #080a0b); border-right:1px solid var(--line); }
+        [data-testid="stSidebarContent"] { padding: 1.2rem 1rem; }
+        .block-container { max-width: 1480px; padding-top: 2rem; padding-bottom: 4rem; }
+        .mono, code, .stCaption, [data-testid="stMetricLabel"], [data-testid="stMetricValue"] { font-family:'DM Mono', monospace !important; }
+        .wwy-noise { position:fixed; inset:0; pointer-events:none; opacity:.035; z-index:0; background-image:linear-gradient(rgba(255,255,255,.035) 1px, transparent 1px),linear-gradient(90deg, rgba(255,255,255,.025) 1px, transparent 1px); background-size:38px 38px; mask-image:linear-gradient(to bottom, black, transparent 82%); }
+        .wwy-top { position:relative; z-index:1; display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid var(--line); padding-bottom:1.1rem; margin-bottom:2rem; }
+        .wwy-brand { display:flex; align-items:center; gap:.8rem; }
+        .wwy-mark { display:grid; place-items:center; width:42px; height:42px; border:1px solid var(--lime); color:var(--lime); font:500 16px 'DM Mono',monospace; letter-spacing:-3px; padding-right:4px; box-shadow:0 0 28px rgba(200,255,61,.12); }
+        .wwy-word { font-size:1.08rem; letter-spacing:.16em; font-weight:700; }
+        .wwy-word span { color:var(--lime); }
+        .wwy-sub { color:var(--muted); font:10px 'DM Mono', monospace; letter-spacing:.1em; text-transform:uppercase; margin-top:4px; }
+        .wwy-status { display:flex; align-items:center; gap:.7rem; color:var(--muted); font:10px 'DM Mono',monospace; text-transform:uppercase; letter-spacing:.1em; }
+        .dot { width:7px; height:7px; border-radius:50%; background:var(--lime); box-shadow:0 0 0 5px rgba(200,255,61,.08), 0 0 18px var(--lime); }
+        .dot.demo { background:var(--amber); box-shadow:0 0 0 5px rgba(255,190,85,.08), 0 0 18px var(--amber); }
+        .dot.off { background:var(--red); box-shadow:0 0 0 5px rgba(255,93,108,.08); }
+        .eyebrow { color:var(--lime); font:10px 'DM Mono',monospace; text-transform:uppercase; letter-spacing:.16em; margin-bottom:1rem; }
+        h1, h2, h3 { letter-spacing:-.045em; }
+        .wwy-hero h1 { font-size:clamp(3rem, 6vw, 6.9rem); line-height:.87; margin:0; max-width:840px; }
+        .wwy-hero h1 em { color:var(--lime); font-style:normal; }
+        .wwy-hero p { color:#a1ada9; max-width:570px; font-size:1.05rem; line-height:1.55; margin:1.3rem 0 0; }
+        .hero-grid { display:grid; grid-template-columns:1.2fr .8fr; gap:2.5rem; align-items:end; margin-bottom:2.4rem; }
+        .signal-card { border:1px solid var(--line); background:linear-gradient(145deg, rgba(200,255,61,.07), rgba(255,255,255,.02)); padding:1.2rem; min-height:170px; position:relative; overflow:hidden; }
+        .signal-card:after { content:'ORC // COW'; position:absolute; right:-15px; bottom:-11px; color:rgba(200,255,61,.08); font:700 45px 'DM Mono',monospace; transform:rotate(-12deg); }
+        .signal-label { color:var(--muted); font:10px 'DM Mono',monospace; text-transform:uppercase; letter-spacing:.12em; }
+        .signal-value { color:var(--lime); font:500 2.6rem 'DM Mono',monospace; margin-top:1.3rem; }
+        .signal-detail { color:#9aa7a4; font-size:.82rem; max-width:240px; line-height:1.4; }
+        .panel { border:1px solid var(--line); background:rgba(16,20,22,.82); padding:1.1rem; }
+        .panel-head { display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem; color:var(--muted); font:10px 'DM Mono',monospace; text-transform:uppercase; letter-spacing:.12em; }
+        .panel-head strong { color:var(--lime); font-weight:500; }
+        .query-box { border:1px solid var(--lime); background:rgba(200,255,61,.035); padding:1rem; margin-bottom:1.1rem; box-shadow:0 0 32px rgba(200,255,61,.05); }
+        .query-prefix { color:var(--lime); font:12px 'DM Mono',monospace; margin-bottom:.5rem; }
+        .telemetry { display:grid; grid-template-columns:repeat(4,1fr); gap:.7rem; margin:1.2rem 0 2rem; }
+        .metric { border-top:1px solid var(--line); padding-top:.7rem; }
+        .metric b { display:block; color:var(--text); font:1.2rem 'DM Mono',monospace; }
+        .metric span { color:var(--muted); font:9px 'DM Mono',monospace; text-transform:uppercase; letter-spacing:.08em; }
+        .section-label { color:var(--cyan); font:10px 'DM Mono',monospace; text-transform:uppercase; letter-spacing:.15em; border-bottom:1px solid var(--line); padding-bottom:.7rem; margin:1.8rem 0 1rem; }
+        .answer { font-size:1.05rem; line-height:1.65; color:#e7eee3; }
+        .answer strong { color:var(--lime); }
+        .source-card { border-left:2px solid var(--cyan); padding:.8rem 1rem; background:rgba(99,230,224,.035); margin-bottom:.6rem; }
+        .source-card a { color:var(--text); text-decoration:none; font-weight:600; }
+        .source-card a:hover { color:var(--lime); }
+        .source-card small { color:var(--muted); display:block; margin-top:.35rem; font:10px 'DM Mono',monospace; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+        .empty-state { border:1px dashed #344347; padding:3.2rem 1.5rem; text-align:center; background:rgba(255,255,255,.015); }
+        .empty-state .big { color:var(--lime); font:2.5rem 'DM Mono',monospace; }
+        .empty-state p { color:var(--muted); max-width:560px; margin:.8rem auto 0; line-height:1.5; }
+        .history-row { padding:.55rem 0; border-bottom:1px solid rgba(255,255,255,.06); color:#b3c0bc; font-size:.82rem; }
+        .history-row span { color:var(--lime); font:10px 'DM Mono',monospace; margin-right:.5rem; }
+        .sidebar-title { color:var(--lime); font:11px 'DM Mono',monospace; text-transform:uppercase; letter-spacing:.14em; border-bottom:1px solid var(--line); padding-bottom:.75rem; margin:1rem 0; }
+        .sidebar-copy { color:var(--muted); font-size:.78rem; line-height:1.5; }
+        .pill { display:inline-block; border:1px solid var(--line); padding:.35rem .5rem; color:var(--muted); font:9px 'DM Mono',monospace; text-transform:uppercase; margin:.2rem .2rem 0 0; }
+        .footer { border-top:1px solid var(--line); padding-top:1rem; margin-top:3rem; display:flex; justify-content:space-between; color:#5d6d69; font:9px 'DM Mono',monospace; text-transform:uppercase; }
+        div[data-testid="stButton"] button, div[data-testid="stDownloadButton"] button { border:1px solid var(--line); background:#12191a; color:var(--text); border-radius:0; font-family:'DM Mono',monospace; text-transform:uppercase; letter-spacing:.07em; font-size:10px; min-height:2.4rem; }
+        div[data-testid="stButton"] button:hover, div[data-testid="stDownloadButton"] button:hover { border-color:var(--lime); color:var(--lime); }
+        div[data-testid="stTextInput"] input { background:#0c1112; border:1px solid #304043; border-radius:0; color:var(--text); font-family:'DM Mono',monospace; }
+        div[data-testid="stTextInput"] input:focus { border-color:var(--lime); box-shadow:0 0 0 1px var(--lime); }
+        div[data-testid="stAlert"] { border-radius:0; }
+        @media (max-width:900px) { .hero-grid { grid-template-columns:1fr; gap:1.2rem; } .telemetry { grid-template-columns:repeat(2,1fr); } .wwy-status { display:none; } }
+        @media (prefers-reduced-motion:reduce) { *,*:before,*:after { animation:none!important; transition:none!important; } }
+        </style>
+        <div class="wwy-noise"></div>
+        """,
+        unsafe_allow_html=True,
     )
 
-    return web_retriever, llm
 
-class StreamHandler(BaseCallbackHandler):
-    def __init__(self, container, initial_text=""):
-        self.container = container
-        self.text = initial_text
-
-    def on_llm_new_token(self, token: str, **kwargs) -> None:
-        self.text += token
-        self.container.info(self.text)
+def has_live_credentials() -> bool:
+    return all(os.getenv(key) for key in ("GOOGLE_API_KEY", "GOOGLE_CSE_ID", "OPENAI_API_KEY"))
 
 
-class PrintRetrievalHandler(BaseCallbackHandler):
-    def __init__(self, container):
-        self.container = container.expander("Context Retrieval")
+def demo_research(question: str, depth: str) -> dict[str, Any]:
+    now = datetime.now().strftime("%H:%M:%S")
+    answer = (
+        f"**Demo signal:** The query is mapped to a {depth.lower()} research pass. "
+        "WWY found a strong starting pattern, but this is a local simulation because live provider keys are not configured. "
+        "Switch on Google CSE + OpenAI credentials to replace this signal with web-grounded evidence."
+    )
+    sources = [
+        {"title": "WWY // Local signal protocol", "url": "https://github.com/YashimiNatuki/wwy-explorer", "meta": f"session artifact · generated {now}"},
+        {"title": "LangChain WebResearchRetriever", "url": "https://python.langchain.com/docs/integrations/retrievers/web_research", "meta": "retrieval architecture reference"},
+        {"title": "Query anatomy // next move", "url": "https://docs.streamlit.io/", "meta": "runtime and interface reference"},
+    ]
+    return {"answer": answer, "sources": sources, "mode": "DEMO", "elapsed": 0.42, "query": question}
 
-    def on_retriever_start(self, query: str, **kwargs):
-        self.container.write(f"**Question:** {query}")
 
-    def on_retriever_end(self, documents, **kwargs):
-        # self.container.write(documents)
-        for idx, doc in enumerate(documents):
-            source = doc.metadata["source"]
-            self.container.write(f"**Results from {source}**")
-            self.container.text(doc.page_content)
+def live_research(question: str, depth: str) -> dict[str, Any]:
+    try:
+        from langchain.callbacks.base import BaseCallbackHandler
+        from langchain.chains import RetrievalQAWithSourcesChain
+        from langchain.embeddings.openai import OpenAIEmbeddings
+        from langchain.chat_models import ChatOpenAI
+        from langchain.docstore import InMemoryDocstore
+        from langchain.retrievers.web_research import WebResearchRetriever
+        from langchain.utilities import GoogleSearchAPIWrapper
+        from langchain.vectorstores import FAISS
+        import faiss
+
+        class StreamHandler(BaseCallbackHandler):
+            def __init__(self, placeholder: Any) -> None:
+                self.placeholder = placeholder
+                self.text = ""
+
+            def on_llm_new_token(self, token: str, **kwargs: Any) -> None:
+                self.text += token
+                self.placeholder.markdown(self.text + " ▌")
+
+        started = time.perf_counter()
+        embeddings = OpenAIEmbeddings()
+        index = faiss.IndexFlatL2(1536)
+        vectorstore = FAISS(embeddings.embed_query, index, InMemoryDocstore({}), {})
+        llm = ChatOpenAI(model_name=os.getenv("OPENAI_MODEL", "gpt-3.5-turbo-16k"), temperature=0, streaming=True)
+        search = GoogleSearchAPIWrapper()
+        retriever = WebResearchRetriever.from_llm(vectorstore=vectorstore, llm=llm, search=search, num_search_results=5 if depth == "Deep" else 3)
+        qa = RetrievalQAWithSourcesChain.from_chain_type(llm, retriever=retriever)
+        placeholder = st.empty()
+        result = qa({"question": question}, callbacks=[StreamHandler(placeholder)])
+        sources = []
+        for raw in str(result.get("sources", "")).splitlines():
+            raw = raw.strip()
+            if raw:
+                sources.append({"title": raw, "url": raw if raw.startswith("http") else "", "meta": "live retrieval source"})
+        return {"answer": result.get("answer", "No answer returned."), "sources": sources, "mode": "LIVE", "elapsed": round(time.perf_counter() - started, 2), "query": question}
+    except Exception as exc:
+        return {"answer": f"**Live connector error:** `{type(exc).__name__}: {exc}`\n\nThe UI is still online. Check provider credentials and dependency installation, then retry.", "sources": [], "mode": "ERROR", "elapsed": 0.0, "query": question}
 
 
-st.sidebar.image("img/ai.png")
-st.header("`Interweb Explorer`")
-st.info("`I am an AI that can answer questions by exploring, reading, and summarizing web pages."
-    "I can be configured to use different modes: public API or private (no data sharing).`")
+def render_sources(sources: list[dict[str, str]]) -> None:
+    if not sources:
+        st.caption("No source records returned by this pass.")
+        return
+    for index, source in enumerate(sources, 1):
+        title = html.escape(source.get("title", "Untitled source"))
+        url = source.get("url", "")
+        safe_url = html.escape(url, quote=True)
+        label = f"{index:02d} // {title}"
+        link = f'<a href="{safe_url}" target="_blank">{label}</a>' if url.startswith("http") else label
+        meta = html.escape(source.get("meta", "evidence record"))
+        st.markdown(f'<div class="source-card">{link}<small>{meta}</small></div>', unsafe_allow_html=True)
 
-# Make retriever and llm
-if 'retriever' not in st.session_state:
-    st.session_state['retriever'], st.session_state['llm'] = settings()
-web_retriever = st.session_state.retriever
-llm = st.session_state.llm
 
-# User input 
-question = st.text_input("`Ask a question:`")
+def dossier_markdown(result: dict[str, Any]) -> str:
+    lines = [f"# WWY// Research Dossier", "", f"- Query: {result['query']}", f"- Mode: {result['mode']}", f"- Elapsed: {result['elapsed']}s", "", "## Signal", "", result["answer"], "", "## Evidence", ""]
+    lines.extend(f"- {item.get('title')} — {item.get('url', '')}" for item in result.get("sources", []))
+    return "\n".join(lines)
 
-if question:
 
-    # Generate answer (w/ citations)
-    import logging
-    logging.basicConfig()
-    logging.getLogger("langchain.retrievers.web_research").setLevel(logging.INFO)    
-    qa_chain = RetrievalQAWithSourcesChain.from_chain_type(llm, retriever=web_retriever)
+inject_styles()
 
-    # Write answer and sources
-    retrieval_streamer_cb = PrintRetrievalHandler(st.container())
-    answer = st.empty()
-    stream_handler = StreamHandler(answer, initial_text="`Answer:`\n\n")
-    result = qa_chain({"question": question},callbacks=[retrieval_streamer_cb, stream_handler])
-    answer.info('`Answer:`\n\n' + result['answer'])
-    st.info('`Sources:`\n\n' + result['sources'])
+if "history" not in st.session_state:
+    st.session_state.history = []
+if "result" not in st.session_state:
+    st.session_state.result = None
+
+with st.sidebar:
+    st.markdown('<div class="wwy-mark">WWY</div>', unsafe_allow_html=True)
+    st.markdown('<div class="sidebar-title">Runtime controls</div>', unsafe_allow_html=True)
+    mode = st.selectbox("Signal mode", ["Auto", "Demo", "Live"], index=0, help="Auto uses live mode only when all provider credentials are configured.")
+    depth = st.radio("Research depth", ["Scout", "Deep"], horizontal=True)
+    st.markdown('<div class="sidebar-title">Capability matrix</div>', unsafe_allow_html=True)
+    live_ready = has_live_credentials()
+    st.markdown(f'<span class="pill">{"LIVE READY" if live_ready else "DEMO READY"}</span><span class="pill">LOCAL HISTORY</span><span class="pill">SOURCE TRACE</span>', unsafe_allow_html=True)
+    st.markdown('<p class="sidebar-copy">WWY never ships API keys in source. Demo mode is intentional: it keeps the cockpit usable before the web provider layer is connected.</p>', unsafe_allow_html=True)
+    st.markdown('<div class="sidebar-title">Quick probes</div>', unsafe_allow_html=True)
+    for example in EXAMPLES:
+        if st.button(example, key=f"example_{example}", use_container_width=True):
+            st.session_state.query = example
+            st.rerun()
+    if st.session_state.history:
+        st.markdown('<div class="sidebar-title">Session history</div>', unsafe_allow_html=True)
+        for item in reversed(st.session_state.history[-6:]):
+            st.markdown(f'<div class="history-row"><span>{html.escape(item["mode"])}</span>{html.escape(item["query"][:58])}</div>', unsafe_allow_html=True)
+    if st.button("Clear session", use_container_width=True):
+        st.session_state.history = []
+        st.session_state.result = None
+        st.rerun()
+
+st.markdown(
+    '<div class="wwy-top"><div class="wwy-brand"><div class="wwy-mark">WWY</div><div><div class="wwy-word">WWY<span>//</span> EXPLORER</div><div class="wwy-sub">cyber ultra orc cow · research cockpit</div></div></div><div class="wwy-status"><span class="dot ' + ("" if live_ready else "demo") + '"></span>' + ("provider mesh online" if live_ready else "demo mesh online") + ' <span>v.3.0</span></div></div>',
+    unsafe_allow_html=True,
+)
+
+st.markdown('<div class="hero-grid"><div class="wwy-hero"><div class="eyebrow">◈ signal intake / 001</div><h1>CUT THROUGH<br /><em>THE NOISE.</em></h1><p>Search, read and compress the web into a source-aware dossier. No fake certainty. No hidden keys. Just a sharper cockpit for people who want the signal.</p></div><div class="signal-card"><div class="signal-label">ORC COW // CORE STATUS</div><div class="signal-value">READY_</div><div class="signal-detail">The interface runs in demo mode without credentials, then upgrades to live retrieval when the provider mesh is connected.</div></div></div>', unsafe_allow_html=True)
+
+st.markdown('<div class="query-box"><div class="query-prefix">WWY://research --target web --depth ' + depth.lower() + '</div>', unsafe_allow_html=True)
+query = st.text_input("Research query", key="query", placeholder="Ask a question worth tracing…", label_visibility="collapsed")
+run = st.button("RUN RESEARCH  →", type="primary", use_container_width=False)
+st.markdown('</div>', unsafe_allow_html=True)
+
+if run and query.strip():
+    selected_mode = "live" if mode == "Live" or (mode == "Auto" and live_ready) else "demo"
+    with st.status("Scanning the signal field…", expanded=False) as status:
+        if selected_mode == "live":
+            result = live_research(query.strip(), depth)
+        else:
+            result = demo_research(query.strip(), depth)
+        status.update(label=f"{result['mode']} pass complete", state="complete" if result["mode"] != "ERROR" else "error")
+    st.session_state.result = result
+    st.session_state.history.append({"query": query.strip(), "mode": result["mode"]})
+
+result = st.session_state.result
+if result:
+    st.markdown('<div class="telemetry"><div class="metric"><b>' + result["mode"] + '</b><span>runtime mode</span></div><div class="metric"><b>' + str(result["elapsed"]) + 's</b><span>latency</span></div><div class="metric"><b>' + str(len(result.get("sources", []))).zfill(2) + '</b><span>evidence nodes</span></div><div class="metric"><b>' + str(len(st.session_state.history)).zfill(2) + '</b><span>session passes</span></div></div>', unsafe_allow_html=True)
+    left, right = st.columns([1.45, .85], gap="large")
+    with left:
+        st.markdown('<div class="section-label">01 / synthesized signal</div>', unsafe_allow_html=True)
+        st.markdown(f'<div class="panel"><div class="answer">{result["answer"]}</div></div>', unsafe_allow_html=True)
+        st.markdown('<div class="section-label">02 / evidence trace</div>', unsafe_allow_html=True)
+        render_sources(result.get("sources", []))
+    with right:
+        st.markdown('<div class="section-label">03 / dossier actions</div>', unsafe_allow_html=True)
+        st.download_button("DOWNLOAD DOSSIER", dossier_markdown(result), file_name="wwy-research-dossier.md", mime="text/markdown", use_container_width=True)
+        if st.button("NEW SIGNAL", use_container_width=True):
+            st.session_state.result = None
+            st.rerun()
+        st.markdown('<div class="panel"><div class="panel-head"><span>Current target</span><strong>LOCKED</strong></div><p class="sidebar-copy">' + html.escape(result["query"]) + '</p><p class="sidebar-copy">Mode: ' + html.escape(result["mode"]) + '<br />Depth: ' + html.escape(depth) + '</p></div>', unsafe_allow_html=True)
+else:
+    st.markdown('<div class="empty-state"><div class="big">◈_</div><h3>NO ACTIVE SIGNAL</h3><p>Unesi pitanje ili odaberi quick probe. Ako nemaš ključeve, demo signal će ti pokazati ceo tok bez lažnog pretvaranja da je web pretražen.</p></div>', unsafe_allow_html=True)
+
+st.markdown('<div class="footer"><span>WWY// explorer · cyber ultra orc cow</span><span>truthful telemetry // local-first by default</span></div>', unsafe_allow_html=True)
