@@ -1,7 +1,7 @@
-# WWY Explorer — Cyber Ultra Orc Cow
+# YappinaTor — WWY// Explorer / Cyber Ultra Orc Cow
 
 ## Cilj
-Pretvoriti sirovi Streamlit Web Explorer u samostalan research cockpit za napredne korisnike: brz za demo bez ključeva, spreman za live web research kada su Google CSE i OpenAI kredencijali podešeni.
+YappinaTor je master research sistem; WWY// Explorer je njegov napredni cockpit za korisnike kojima trebaju signal, dokazi i dossier: brz za demo bez ključeva, spreman za live web research kada su Google CSE i OpenAI kredencijali podešeni.
 
 ## Dizajn
 - **Pokret:** cyber command-center / brutalist research terminal.
@@ -12,9 +12,9 @@ Pretvoriti sirovi Streamlit Web Explorer u samostalan research cockpit za napred
 - **Interakcija:** svaka akcija daje stanje (idle / scanning / demo / live / error); query ostaje u istoriji sesije; demo je eksplicitno označen.
 - **Animacija:** kratki shimmer na scan state, pulse na live signal, bez beskonačnih agresivnih animacija i uz reduced-motion fallback.
 - **Tipografija:** system sans za čitljivost + monospace za telemetry, status i komande.
-- **Brand:** WWY je research cockpit za ljude koji žele da vide signal, dokaze i sledeći potez; ličnost je hladna, radoznala, malo divlja.
+- **Brand:** YappinaTor je glavni inteligentni sistem; WWY// Explorer je njegov research cockpit za ljude koji žele da vide signal, dokaze i sledeći potez; ličnost je hladna, radoznala, malo divlja.
 - **Glas:** `CUT THROUGH THE NOISE.` / `Nema ključeva? Uđi u demo. Imaš ključeve? Otključaj mrežu.`
-- **Wordmark:** `WWY//` kao tri kratka raster signala sa lomljenom kosom crtom.
+- **Wordmark:** `YAPPINATOR//` kao master wordmark, sa `WWY//` kao podmodulskim raster signalom.
 - **Signature color:** Orc Lime `#c8ff3d`.
 
 ## Struktura

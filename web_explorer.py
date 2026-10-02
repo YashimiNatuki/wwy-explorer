@@ -11,7 +11,7 @@ import streamlit as st
 
 from analysis_engine import build_report, run_agent_pipeline
 
-APP_NAME = "WWY// EXPLORER"
+APP_NAME = "YAPPINATOR"
 SIGNATURE = "CYBER ULTRA ORC COW"
 EXAMPLES = [
     "What changed in local-first AI tools this week?",
@@ -25,7 +25,7 @@ LOCALE_COPY = {
 }
 
 st.set_page_config(
-    page_title="WWY// Explorer — Cyber Ultra Orc Cow",
+    page_title="YappinaTor — WWY// Explorer Research Cockpit",
     page_icon="◈",
     layout="wide",
     initial_sidebar_state="expanded",
@@ -220,7 +220,7 @@ locale = st.sidebar.selectbox("Language layer / jezički sloj", list(LOCALE_COPY
 copy = LOCALE_COPY[locale]
 
 with st.sidebar:
-    st.markdown('<div class="wwy-mark">WWY</div>', unsafe_allow_html=True)
+    st.markdown('<div class="wwy-mark">YT</div>', unsafe_allow_html=True)
     st.markdown('<div class="sidebar-title">Runtime controls</div>', unsafe_allow_html=True)
     mode = st.selectbox("Signal mode", ["Auto", "Demo", "Live"], index=0, help="Auto uses live mode only when all provider credentials are configured.")
     depth = st.radio("Research depth", ["Scout", "Deep", "Forensic"], horizontal=True)
@@ -246,7 +246,7 @@ with st.sidebar:
         st.rerun()
 
 st.markdown(
-    '<div class="wwy-top"><div class="wwy-brand"><div class="wwy-mark">WWY</div><div><div class="wwy-word">WWY<span>//</span> EXPLORER</div><div class="wwy-sub">ĐINĐERE MINĐERE · ' + copy["subtitle"] + '</div></div></div><div class="wwy-status"><span class="dot ' + ("" if live_ready else "demo") + '"></span>' + ("provider mesh online" if live_ready else copy["demo"]) + ' <span>v.4.0</span></div></div>',
+    '<div class="wwy-top"><div class="wwy-brand"><div class="wwy-mark">YT</div><div><div class="wwy-word">YAPPINATOR<span>//</span></div><div class="wwy-sub">WWY// EXPLORER · ĐINĐERE MINĐERE · ' + copy["subtitle"] + '</div></div></div><div class="wwy-status"><span class="dot ' + ("" if live_ready else "demo") + '"></span>' + ("provider mesh online" if live_ready else copy["demo"]) + ' <span>v.5.0</span></div></div>',
     unsafe_allow_html=True,
 )
 
@@ -290,7 +290,7 @@ if result:
         st.markdown('<div class="section-label">03 / dossier actions</div>', unsafe_allow_html=True)
         st.markdown('<div class="orbit-core"><b>WWY</b><small>AGENT MESH</small></div>', unsafe_allow_html=True)
         st.markdown(f'<div class="deep-panel"><div class="panel-head"><span>Deep analysis confidence</span><strong>{analysis["confidence"]}%</strong></div><div class="confidence-track"><span style="width:{analysis["confidence"]}%"></span></div><p>{html.escape(analysis["thesis"])}</p><span class="report-chip">AUTO REPORT READY</span></div>', unsafe_allow_html=True)
-        st.download_button(copy["report"], build_report(result, analysis), file_name="wwy-deep-analysis-dossier.md", mime="text/markdown", use_container_width=True)
+        st.download_button(copy["report"], build_report(result, analysis), file_name="yappinator-deep-analysis-dossier.md", mime="text/markdown", use_container_width=True)
         if st.button("NEW SIGNAL", use_container_width=True):
             st.session_state.result = None
             st.rerun()
@@ -298,4 +298,4 @@ if result:
 else:
     st.markdown(f'<div class="empty-state"><div class="big">◈_</div><h3>{copy["empty"]}</h3><p>{copy["empty_copy"]}</p></div>', unsafe_allow_html=True)
 
-st.markdown('<div class="footer"><span>WWY// explorer · cyber ultra orc cow</span><span>truthful telemetry // local-first by default</span></div>', unsafe_allow_html=True)
+st.markdown('<div class="footer"><span>YAPPINATOR · WWY// EXPLORER · cyber ultra orc cow</span><span>truthful telemetry // local-first by default</span></div>', unsafe_allow_html=True)

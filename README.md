@@ -1,6 +1,6 @@
-# WWY// Explorer — Cyber Ultra Orc Cow
+# YappinaTor — WWY// Explorer / Cyber Ultra Orc Cow
 
-WWY// Explorer je research cockpit za napredne korisnike: uneseš pitanje, dobiješ sažet signal, trag izvora i dossier koji možeš da sačuvaš. Interfejs radi odmah u **Demo** režimu, bez ključeva, a prelazi u live web research kada su Google CSE i OpenAI promenljive podešene.
+**YappinaTor** je glavni proizvodni sistem. **WWY// Explorer** je njegova napredna research-cockpit verzija: uneseš pitanje, dobiješ sažet signal, trag izvora i dossier koji možeš da sačuvaš. Interfejs radi odmah u **Demo** režimu, bez ključeva, a prelazi u live web research kada su Google CSE i OpenAI promenljive podešene.
 
 ## Pokretanje
 
@@ -29,7 +29,7 @@ U sidebar-u izaberi `Auto` ili `Live`. Ako provider sloj nije dostupan, UI ostaj
 
 ## Šta je unapređeno
 
-Nova verzija ima WWY// command-center shell, Cyber Ultra Orc Cow branding, telemetry bar, demo/live status, quick probes, session history, depth switch, source evidence kartice, dossier download i reset. Originalni LangChain WebResearchRetriever tok ostaje kao live adapter, ali više nema hardkodovanih provider vrednosti.
+YappinaTor sada ima WWY// command-center shell, Cyber Ultra Orc Cow branding, telemetry bar, demo/live status, quick probes, session history, depth switch, source evidence kartice, dossier download i reset. Originalni LangChain WebResearchRetriever tok ostaje kao live adapter, ali više nema hardkodovanih provider vrednosti.
 
 ## Agent mesh i deep analysis
 
