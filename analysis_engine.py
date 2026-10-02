@@ -1,10 +1,13 @@
 from __future__ import annotations
 
+import json
 import re
 from dataclasses import dataclass
 from datetime import datetime
 from typing import Any
 from urllib.parse import urlparse
+
+from connectors import classify_query, connector_snapshot, source_envelope
 
 
 @dataclass(frozen=True)
@@ -21,6 +24,8 @@ AGENTS = (
     AgentSpec("skeptic", "SKEPTIC", "contradictions + uncertainty", "amber"),
     AgentSpec("synth", "SYNTHESIZER", "thesis + decision signal", "violet"),
     AgentSpec("report", "REPORT SMITH", "automatic dossier assembly", "red"),
+    AgentSpec("compute", "COMPUTE CORE", "programming + computational reasoning", "cyan"),
+    AgentSpec("gateway", "GATEWAY", "connector routing + provenance", "amber"),
 )
 
 
@@ -45,16 +50,11 @@ def _source_quality(result: dict[str, Any]) -> list[dict[str, Any]]:
 
 
 def run_agent_pipeline(question: str, result: dict[str, Any], depth: str = "Deep") -> dict[str, Any]:
-    """Run a bounded, inspectable multi-agent pass over one research result.
-
-    The pipeline is intentionally deterministic when the app is in Demo mode. In Live mode
-    the same agents operate on the retrieved answer and source records, so the UI never claims
-    an agent saw data that was not passed into this function.
-    """
     terms = _tokens(question)
+    query_class = classify_query(question)
     sources = _source_count(result)
     mode = result.get("mode", "DEMO")
-    confidence = min(96, 52 + sources * 9 + (12 if mode == "LIVE" else 0) + (8 if depth == "Deep" else 0) + (12 if depth == "Forensic" else 0))
+    confidence = min(96, 52 + sources * 9 + (12 if mode == "LIVE" else 0) + (8 if depth == "Deep" else 0) + (12 if depth == "Forensic" else 0) + (4 if query_class["computational"] else 0))
     term_line = " · ".join(terms[:5]) or "no stable entities extracted"
     answer = str(result.get("answer", "")).replace("\n", " ").strip()
     answer_hint = answer[:150] + ("…" if len(answer) > 150 else "")
@@ -69,69 +69,38 @@ def run_agent_pipeline(question: str, result: dict[str, Any], depth: str = "Deep
         "HUMAN_REVIEW_REQUIRED",
         "QUERY_BIAS_POSSIBLE",
     ]
-
     outputs = {
         "scout": f"Expanded target into {len(terms)} query atoms: {term_line}.",
         "forensics": f"Mapped {sources:02d} evidence nodes; runtime provenance is {mode.lower()} and traceable.",
         "skeptic": caveat,
         "synth": f"Working thesis: the strongest signal is the relationship between {terms[0] if terms else 'the target'} and the requested decision.",
         "report": f"Dossier assembled with {confidence}% internal confidence and a {depth.lower()} evidence pass.",
+        "compute": f"Track classified as {query_class['track']}; {query_class['safety']}.",
+        "gateway": f"Routed through {len(connector_snapshot())} declared connector lanes; onion gateway is explicit and opt-in.",
     }
     stages = []
     for index, spec in enumerate(AGENTS, 1):
         stages.append({
-            "key": spec.key,
-            "name": spec.name,
-            "role": spec.role,
-            "accent": spec.accent,
-            "sequence": f"0{index}",
-            "status": "COMPLETE",
-            "output": outputs[spec.key],
+            "key": spec.key, "name": spec.name, "role": spec.role, "accent": spec.accent,
+            "sequence": f"0{index}", "status": "COMPLETE", "output": outputs[spec.key],
             "pulse": min(99, confidence - index * 3),
         })
-
     return {
-        "question": question,
-        "mode": mode,
-        "depth": depth,
-        "confidence": confidence,
-        "terms": terms,
-        "stages": stages,
-        "thesis": outputs["synth"],
-        "caveat": caveat,
-        "answer_hint": answer_hint,
-        "query_plan": [f"Locate primary evidence for: {term}" for term in terms[:4]] or ["Clarify target and rerun with a more specific query."],
-        "source_quality": source_quality,
-        "contradictions": contradictions,
-        "risk_flags": risk_flags,
-        "generated_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+        "question": question, "mode": mode, "depth": depth, "confidence": confidence,
+        "terms": terms, "stages": stages, "thesis": outputs["synth"], "caveat": caveat,
+        "answer_hint": answer_hint, "query_plan": [f"Locate primary evidence for: {term}" for term in terms[:4]] or ["Clarify target and rerun with a more specific query."],
+        "source_quality": source_quality, "contradictions": contradictions, "risk_flags": risk_flags,
+        "generated_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S"), "query_class": query_class,
+        "connectors": connector_snapshot(), "evidence_envelope": source_envelope(result.get("sources", [])),
     }
 
 
 def build_report(result: dict[str, Any], analysis: dict[str, Any]) -> str:
     sources = result.get("sources", [])
     lines = [
-        "# YappinaTor // Deep Analysis Dossier",
-        "",
-        f"> Generated by Cyber Ultra Orc Cow agent mesh · {analysis['generated_at']}",
-        "",
-        "## Mission",
-        "",
-        f"- Query: {analysis['question']}",
-        f"- Runtime mode: {analysis['mode']}",
-        f"- Depth: {analysis['depth']}",
-        f"- Agent confidence: {analysis['confidence']}%",
-        "",
-        "## Executive signal",
-        "",
-        result.get("answer", "No answer returned."),
-        "",
-        "## Working thesis",
-        "",
-        analysis["thesis"],
-        "",
-        "## Agent trace",
-        "",
+        "# YappinaTor // Deep Analysis Dossier", "", f"> Generated by Cyber Ultra Orc Cow agent mesh · {analysis['generated_at']}", "",
+        "## Mission", "", f"- Query: {analysis['question']}", f"- Runtime mode: {analysis['mode']}", f"- Depth: {analysis['depth']}", f"- Agent confidence: {analysis['confidence']}%", f"- Analysis track: {analysis['query_class']['track']}",
+        "", "## Executive signal", "", result.get("answer", "No answer returned."), "", "## Working thesis", "", analysis["thesis"], "", "## Agent trace", "",
     ]
     for stage in analysis["stages"]:
         lines.extend([f"### {stage['sequence']} / {stage['name']}", "", f"**Role:** {stage['role']}", "", stage["output"], ""])
@@ -147,3 +116,13 @@ def build_report(result: dict[str, Any], analysis: dict[str, Any]) -> str:
         lines.append(f"{index}. [{source.get('title', 'Untitled source')}]({source.get('url', '')}) — {source.get('meta', 'evidence record')} · {quality['label']} {quality['score']}/100")
     lines.extend(["", "## Next moves", "", "1. Verify the strongest source node.", "2. Challenge the thesis with a counter-query.", "3. Re-run in Deep mode before making a high-impact decision."])
     return "\n".join(lines)
+
+
+def build_json_report(result: dict[str, Any], analysis: dict[str, Any]) -> str:
+    return json.dumps({"product": "YappinaTor", "result": result, "analysis": analysis}, ensure_ascii=False, indent=2)
+
+
+def build_html_report(result: dict[str, Any], analysis: dict[str, Any]) -> str:
+    title = "YappinaTor // Deep Analysis Dossier"
+    body = build_report(result, analysis).replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
+    return f"<!doctype html><html lang='sr-Latn'><head><meta charset='utf-8'><title>{title}</title><style>body{{background:#07090a;color:#edf3e9;font:16px system-ui;max-width:960px;margin:40px auto;padding:0 20px}}h1,h2{{color:#c8ff3d}}pre{{white-space:pre-wrap;border:1px solid #243235;padding:20px;background:#101416}}</style></head><body><h1>{title}</h1><h2>{analysis['question']}</h2><pre>{body}</pre></body></html>"

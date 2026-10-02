@@ -9,7 +9,8 @@ from typing import Any
 
 import streamlit as st
 
-from analysis_engine import build_report, run_agent_pipeline
+from analysis_engine import build_html_report, build_json_report, build_report, run_agent_pipeline
+from connectors import connector_snapshot
 
 APP_NAME = "YAPPINATOR"
 SIGNATURE = "CYBER ULTRA ORC COW"
@@ -18,6 +19,7 @@ EXAMPLES = [
     "Compare WebAssembly runtimes for edge applications.",
     "Find the strongest evidence for small language model reasoning.",
 ]
+ACCESS_CODE = "YAPPINATOR"
 LOCALE_COPY = {
     "Crnogorski": {"subtitle": "istraživački kokpit za napredne korisnike", "query": "istraživački upit", "run": "POKRENI ISTRAŽIVANJE  →", "empty": "NEMA AKTIVNOG SIGNALA", "empty_copy": "Unesi pitanje ili izaberi brzu probu. Forensic režim razdvaja dokaz, rizik i neizvjesnost.", "report": "PREUZMI AUTOMATSKI IZVJEŠTAJ", "demo": "demo mreža online", "hero_a": "PRESIJEČI", "hero_b": "ŠUM.", "hero_copy": "Pretraži, pročitaj i sabij web u dossier sa tragom izvora. Bez lažne sigurnosti. Samo oštriji kokpit za ljude koji traže signal."},
     "Romani (beta)": {"subtitle": "Đinđere Minđere · Romani jezički sloj u beta fazi", "query": "istraživački upit / Romani beta", "run": "POKRENI ISTRAŽIVANJE  →", "empty": "NEMA AKTIVNOG SIGNALA", "empty_copy": "Romani terminologija se uvodi postepeno; pregledaj rezultate i označi izraze za dalju lokalizaciju.", "report": "PREUZMI AUTOMATSKI IZVJEŠTAJ", "demo": "demo mreža online", "hero_a": "PRESIJEČI", "hero_b": "ŠUM.", "hero_copy": "Đinđere Minđere jezički sloj je u beta fazi. Rezultati ostaju transparentni i spremni za ljudsku jezičku reviziju."},
@@ -106,7 +108,8 @@ def inject_styles() -> None:
         .orbit-core { position:relative; display:grid; place-items:center; width:112px; height:112px; margin:0 auto 1rem; border:1px solid rgba(200,255,61,.5); border-radius:50%; color:var(--lime); font:500 13px 'DM Mono',monospace; box-shadow:0 0 32px rgba(200,255,61,.13), inset 0 0 25px rgba(200,255,61,.07); }
         .orbit-core:before,.orbit-core:after { content:""; position:absolute; inset:-12px; border:1px solid rgba(99,230,224,.25); border-radius:50%; transform:rotate(32deg); animation:orbit 8s linear infinite; }.orbit-core:after { inset:-24px; border-color:rgba(255,190,85,.18); transform:rotate(-25deg); animation-duration:11s; animation-direction:reverse; }.orbit-core b { font-size:1.8rem; letter-spacing:-.1em; }.orbit-core small { position:absolute; bottom:14px; font-size:7px; color:var(--muted); letter-spacing:.14em; }
         .deep-panel { border:1px solid var(--line); background:rgba(16,20,22,.82); padding:1rem; margin-top:1rem; }.deep-panel p { color:#a6b2ad; font-size:.86rem; line-height:1.5; }.confidence-track { height:5px; background:#28302f; margin:.7rem 0; }.confidence-track span { display:block; height:100%; background:linear-gradient(90deg,var(--amber),var(--lime),var(--cyan)); box-shadow:0 0 14px rgba(200,255,61,.4); }.report-chip,.risk-chip { display:inline-block; color:var(--lime); border:1px solid rgba(200,255,61,.35); padding:.35rem .55rem; font:9px 'DM Mono',monospace; text-transform:uppercase; margin:.15rem .15rem .15rem 0; }.risk-chip { color:var(--amber); border-color:rgba(255,190,85,.35); }.qa-grid { display:grid; grid-template-columns:1fr 1fr; gap:.7rem; }.qa-box { border:1px solid var(--line); background:rgba(255,255,255,.018); padding:.85rem; }.qa-box h4 { color:var(--cyan); font:10px 'DM Mono',monospace; text-transform:uppercase; letter-spacing:.1em; margin:0 0 .7rem; }.quality-row,.plan-item { display:flex; justify-content:space-between; gap:.6rem; padding:.42rem 0; border-bottom:1px solid rgba(255,255,255,.06); color:#aebbb5; font-size:.72rem; }.quality-row b { color:var(--lime); font:9px 'DM Mono',monospace; }.plan-item { display:block; }.plan-item:before { content:'› '; color:var(--lime); font-family:'DM Mono',monospace; }
-        @keyframes agentIn { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:translateY(0); } } @keyframes scanPulse { 0%,100% { opacity:.65; } 50% { opacity:1; } } @keyframes orbit { to { transform:rotate(392deg); } }
+        .access-lock { min-height:72vh; display:grid; place-items:center; text-align:center; position:relative; overflow:hidden; }.access-lock:before { content:'ACCESS // YAPPINATOR'; position:absolute; inset:10% 5%; border:1px solid rgba(200,255,61,.18); color:rgba(200,255,61,.28); font:10px 'DM Mono',monospace; letter-spacing:.3em; padding:1rem; animation:lockScan 3s linear infinite; }.lock-panel { position:relative; z-index:1; border:1px solid var(--lime); background:rgba(7,9,10,.94); box-shadow:0 0 70px rgba(200,255,61,.13), inset 0 0 40px rgba(99,230,224,.04); padding:3rem; max-width:620px; }.lock-glyph { color:var(--lime); font:4rem 'DM Mono',monospace; text-shadow:0 0 24px var(--lime); animation:lockPulse 1.8s ease-in-out infinite; }.lock-panel h1 { font-size:clamp(2.5rem,7vw,5rem); margin:.5rem 0; }.lock-panel h1 em { color:var(--lime); font-style:normal; }.lock-panel p { color:var(--muted); line-height:1.6; }.live-beacon { display:inline-flex; align-items:center; gap:.45rem; color:var(--lime); font:9px 'DM Mono',monospace; letter-spacing:.12em; text-transform:uppercase; }.live-beacon i { width:6px; height:6px; border-radius:50%; background:var(--lime); box-shadow:0 0 0 5px rgba(200,255,61,.08),0 0 16px var(--lime); animation:beacon 1.1s ease-in-out infinite; }
+        @keyframes agentIn { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:translateY(0); } } @keyframes scanPulse { 0%,100% { opacity:.65; } 50% { opacity:1; } } @keyframes orbit { to { transform:rotate(392deg); } } @keyframes lockPulse { 0%,100% { opacity:.72; transform:scale(.98); } 50% { opacity:1; transform:scale(1.04); } } @keyframes lockScan { 0% { transform:translateY(-10px); opacity:.25; } 50% { opacity:.7; } 100% { transform:translateY(10px); opacity:.25; } } @keyframes beacon { 50% { transform:scale(1.65); opacity:.5; } }
         @media (max-width:1100px) { .agent-grid { grid-template-columns:repeat(3,1fr); } } @media (max-width:650px) { .agent-grid { grid-template-columns:1fr 1fr; } }
         @media (max-width:900px) { .hero-grid { grid-template-columns:1fr; gap:1.2rem; } .telemetry { grid-template-columns:repeat(2,1fr); } .wwy-status { display:none; } }
         @media (prefers-reduced-motion:reduce) { *,*:before,*:after { animation:none!important; transition:none!important; } }
@@ -211,6 +214,15 @@ def dossier_markdown(result: dict[str, Any]) -> str:
 
 inject_styles()
 
+if "access_granted" not in st.session_state:
+    st.session_state.access_granted = False
+if not st.session_state.access_granted:
+    st.markdown('<div class="access-lock"><div class="lock-panel"><div class="lock-glyph">⌬</div><div class="eyebrow">YAPPINATOR // SECURE ENTRY SIMULATION</div><h1>ENTER THE<br /><em>COCKPIT.</em></h1><p>Filmski access-lock za YappinaTor WWY// Explorer. Ovo je UI gate za operativni osjećaj — nije zamjena za stvarnu autentikaciju, firewall ili account security.</p><div class="live-beacon"><i></i> local core standing by</div></div></div>', unsafe_allow_html=True)
+    if st.button("UNLOCK RESEARCH COCKPIT  →", type="primary", use_container_width=True):
+        st.session_state.access_granted = True
+        st.rerun()
+    st.stop()
+
 if "history" not in st.session_state:
     st.session_state.history = []
 if "result" not in st.session_state:
@@ -227,10 +239,13 @@ with st.sidebar:
     st.markdown('<div class="sidebar-title">Capability matrix</div>', unsafe_allow_html=True)
     live_ready = has_live_credentials()
     st.markdown(f'<span class="pill">{"LIVE READY" if live_ready else "DEMO READY"}</span><span class="pill">LOCAL HISTORY</span><span class="pill">SOURCE TRACE</span>', unsafe_allow_html=True)
-    st.markdown('<p class="sidebar-copy">WWY never ships API keys in source. Demo mode is intentional: it keeps the cockpit usable before the web provider layer is connected.</p>', unsafe_allow_html=True)
+    st.markdown('<p class="sidebar-copy">YappinaTor never ships API keys in source. Demo mode is intentional: it keeps the cockpit usable before the provider mesh is connected.</p>', unsafe_allow_html=True)
+    st.markdown('<div class="sidebar-title">Connector matrix</div>', unsafe_allow_html=True)
+    for connector in connector_snapshot():
+        st.markdown(f'<div class="history-row"><span>{html.escape(connector["status"])}</span>{html.escape(connector["label"])}<small> · {html.escape(connector["detail"])}</small></div>', unsafe_allow_html=True)
     st.markdown('<div class="sidebar-title">Agent mesh</div>', unsafe_allow_html=True)
-    st.markdown('<span class="pill">SCOUT</span><span class="pill">FORENSICS</span><span class="pill">SKEPTIC</span><span class="pill">SYNTH</span><span class="pill">REPORT SMITH</span>', unsafe_allow_html=True)
-    st.markdown('<p class="sidebar-copy">Five bounded roles inspect the same evidence envelope. Their trace is rendered after every pass; no hidden background agent is claimed.</p>', unsafe_allow_html=True)
+    st.markdown('<span class="pill">SCOUT</span><span class="pill">FORENSICS</span><span class="pill">SKEPTIC</span><span class="pill">SYNTH</span><span class="pill">REPORT SMITH</span><span class="pill">COMPUTE CORE</span><span class="pill">GATEWAY</span>', unsafe_allow_html=True)
+    st.markdown('<p class="sidebar-copy">Bounded agents inspect one evidence envelope. Compute Core adds programming/computational classification; Gateway keeps routing and provenance inspectable.</p>', unsafe_allow_html=True)
     st.markdown('<div class="sidebar-title">Quick probes</div>', unsafe_allow_html=True)
     for example in EXAMPLES:
         if st.button(example, key=f"example_{example}", use_container_width=True):
@@ -246,7 +261,7 @@ with st.sidebar:
         st.rerun()
 
 st.markdown(
-    '<div class="wwy-top"><div class="wwy-brand"><div class="wwy-mark">YT</div><div><div class="wwy-word">YAPPINATOR<span>//</span></div><div class="wwy-sub">WWY// EXPLORER · ĐINĐERE MINĐERE · ' + copy["subtitle"] + '</div></div></div><div class="wwy-status"><span class="dot ' + ("" if live_ready else "demo") + '"></span>' + ("provider mesh online" if live_ready else copy["demo"]) + ' <span>v.5.0</span></div></div>',
+    '<div class="wwy-top"><div class="wwy-brand"><div class="wwy-mark">YT</div><div><div class="wwy-word">YAPPINATOR<span>//</span></div><div class="wwy-sub">WWY// EXPLORER · ĐINĐERE MINĐERE · ' + copy["subtitle"] + '</div></div></div><div class="wwy-status"><span class="dot ' + ("" if live_ready else "demo") + '"></span>' + ("provider mesh online" if live_ready else copy["demo"]) + ' <span>v.6.0</span></div></div>',
     unsafe_allow_html=True,
 )
 
@@ -271,7 +286,7 @@ if run and query.strip():
 result = st.session_state.result
 if result:
     analysis = run_agent_pipeline(result["query"], result, depth)
-    st.markdown('<div class="telemetry"><div class="metric"><b>' + result["mode"] + '</b><span>runtime mode</span></div><div class="metric"><b>' + str(result["elapsed"]) + 's</b><span>latency</span></div><div class="metric"><b>' + str(len(result.get("sources", []))).zfill(2) + '</b><span>evidence nodes</span></div><div class="metric"><b>' + str(len(st.session_state.history)).zfill(2) + '</b><span>session passes</span></div></div>', unsafe_allow_html=True)
+    st.markdown('<div class="telemetry"><div class="metric"><b>' + result["mode"] + '</b><span>runtime mode</span></div><div class="metric"><b>' + str(result["elapsed"]) + 's</b><span>latency</span></div><div class="metric"><b>' + str(len(result.get("sources", []))).zfill(2) + '</b><span>evidence nodes</span></div><div class="metric"><b>' + html.escape(analysis["query_class"]["track"]) + '</b><span>compute track</span></div></div>', unsafe_allow_html=True)
     st.markdown('<div class="section-label">00 / agent mesh telemetry</div>', unsafe_allow_html=True)
     cards = []
     for stage in analysis["stages"]:
@@ -288,9 +303,14 @@ if result:
         render_forensic_panel(analysis)
     with right:
         st.markdown('<div class="section-label">03 / dossier actions</div>', unsafe_allow_html=True)
-        st.markdown('<div class="orbit-core"><b>WWY</b><small>AGENT MESH</small></div>', unsafe_allow_html=True)
+        st.markdown('<div class="orbit-core"><b>YT</b><small>AGENT MESH</small></div><div class="live-beacon"><i></i> live telemetry / pass synchronized</div>', unsafe_allow_html=True)
         st.markdown(f'<div class="deep-panel"><div class="panel-head"><span>Deep analysis confidence</span><strong>{analysis["confidence"]}%</strong></div><div class="confidence-track"><span style="width:{analysis["confidence"]}%"></span></div><p>{html.escape(analysis["thesis"])}</p><span class="report-chip">AUTO REPORT READY</span></div>', unsafe_allow_html=True)
         st.download_button(copy["report"], build_report(result, analysis), file_name="yappinator-deep-analysis-dossier.md", mime="text/markdown", use_container_width=True)
+        report_col_a, report_col_b = st.columns(2)
+        with report_col_a:
+            st.download_button("JSON EVIDENCE", build_json_report(result, analysis), file_name="yappinator-evidence.json", mime="application/json", use_container_width=True)
+        with report_col_b:
+            st.download_button("HTML DOSSIER", build_html_report(result, analysis), file_name="yappinator-dossier.html", mime="text/html", use_container_width=True)
         if st.button("NEW SIGNAL", use_container_width=True):
             st.session_state.result = None
             st.rerun()

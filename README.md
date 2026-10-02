@@ -40,3 +40,13 @@ Posle svakog research pass-a, `analysis_engine.py` pokreće pet transparentnih, 
 ## Maksimalni research režim
 
 Sidebar sada nudi tri dubine: **Scout**, **Deep** i **Forensic**. Forensic dodaje source-quality ranking, contradiction radar, query plan i risk flags. Jezički sloj je podrazumevano **Crnogorski**, uz **Romani (beta)** za postepenu lokalizaciju Đinđere Minđere sistema i English fallback. Romani terminologija je jasno označena kao beta da se ne bi izmišljala lokalna varijanta jezika bez ljudske revizije.
+
+## YappinaTor agent orchestration
+
+Agent mesh sada ima sedam bounded uloga: Scout, Forensics, Skeptic, Synthesizer, Report Smith, **Compute Core** i **Gateway**. Compute Core automatski klasifikuje programming/computational upite i jasno označava da je izvršavanje koda van ovog bezbednog analysis sloja. Gateway dodaje provenance i connector routing bez skrivenih agenata.
+
+Rezultat se može izvesti kao Markdown, JSON evidence envelope ili samostalni HTML dossier. `connectors.py` uvodi stabilan `yappinator.evidence.v1` envelope sa ID-jevima, domenima, pagination poljima i connector snapshotom, što je priprema za bazu/API skaliranje bez menjanja trenutnog Streamlit UI-ja.
+
+Onion pretraga je **opt-in connector**, ne podrazumevano uključena. Aktivira se tek kada administrator konfiguriše `TOR_PROXY_URL` i `ONION_SEARCH_URL`; aplikacija ne tvrdi da može da pristupi onion mreži bez tog gateway-a i ne zaobilazi autentikaciju, rate limite ili zaštite izvora.
+
+Ulazni ekran ima filmski Cyber Ultra Orc Cow access-lock. To je vizuelni operational gate, ne zamena za stvarni login, firewall ili account security.
