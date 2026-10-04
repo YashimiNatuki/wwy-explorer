@@ -21,6 +21,7 @@ YappinaTor je master research sistem; WWY// Explorer je njegov napredni cockpit 
 - `web_explorer.py`: Streamlit shell, settings, demo/live adapter, query history, agent telemetry i UI.
 - `analysis_engine.py`: bounded Scout / Forensics / Skeptic / Synthesizer / Report Smith pipeline i Markdown report builder.
 - `connectors.py`: connector registry, evidence envelope, pagination metadata i programming/computational query classification.
+- `data_store.py`: SQLite WAL evidence ledger za research runs, sa indeksiranim recent history i `YAPPINATOR_DB_PATH` migracionom tačkom.
 - Forensic depth: source quality ranking, contradiction radar, risk flags i query plan.
 - Locale layer: Crnogorski default, Romani beta i English fallback za Đinđere Minđere.
 - YappinaTor orchestration: Compute Core i Gateway agenti, Markdown/JSON/HTML report outputs, optional onion gateway status.

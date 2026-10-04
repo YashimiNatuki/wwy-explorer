@@ -47,6 +47,8 @@ Agent mesh sada ima sedam bounded uloga: Scout, Forensics, Skeptic, Synthesizer,
 
 Rezultat se može izvesti kao Markdown, JSON evidence envelope ili samostalni HTML dossier. `connectors.py` uvodi stabilan `yappinator.evidence.v1` envelope sa ID-jevima, domenima, pagination poljima i connector snapshotom, što je priprema za bazu/API skaliranje bez menjanja trenutnog Streamlit UI-ja.
 
+`data_store.py` dodaje lokalni SQLite ledger sa WAL journalingom, indeksom po vremenu i recent-runs prikazom. Research pass se čuva kao rezultat + agent analysis payload, bez provider ključeva; putanja se može promeniti kroz `YAPPINATOR_DB_PATH` kada se sistem prebaci na persistent volume ili eksternu bazu.
+
 Onion pretraga je **opt-in connector**, ne podrazumevano uključena. Aktivira se tek kada administrator konfiguriše `TOR_PROXY_URL` i `ONION_SEARCH_URL`; aplikacija ne tvrdi da može da pristupi onion mreži bez tog gateway-a i ne zaobilazi autentikaciju, rate limite ili zaštite izvora.
 
 Ulazni ekran ima filmski Cyber Ultra Orc Cow access-lock. To je vizuelni operational gate, ne zamena za stvarni login, firewall ili account security.

@@ -11,6 +11,7 @@ import streamlit as st
 
 from analysis_engine import build_html_report, build_json_report, build_report, run_agent_pipeline
 from connectors import connector_snapshot
+from data_store import recent_runs, save_run
 
 APP_NAME = "YAPPINATOR"
 SIGNATURE = "CYBER ULTRA ORC COW"
@@ -255,6 +256,11 @@ with st.sidebar:
         st.markdown('<div class="sidebar-title">Session history</div>', unsafe_allow_html=True)
         for item in reversed(st.session_state.history[-6:]):
             st.markdown(f'<div class="history-row"><span>{html.escape(item["mode"])}</span>{html.escape(item["query"][:58])}</div>', unsafe_allow_html=True)
+    persisted = recent_runs(5)
+    if persisted:
+        st.markdown('<div class="sidebar-title">Persistent run ledger</div>', unsafe_allow_html=True)
+        for item in persisted:
+            st.markdown(f'<div class="history-row"><span>{html.escape(item["mode"])}</span>{html.escape(item["query"][:48])}<small> · {html.escape(item["depth"])}</small></div>', unsafe_allow_html=True)
     if st.button("Clear session", use_container_width=True):
         st.session_state.history = []
         st.session_state.result = None
@@ -286,6 +292,8 @@ if run and query.strip():
 result = st.session_state.result
 if result:
     analysis = run_agent_pipeline(result["query"], result, depth)
+    if not result.get("persisted_id"):
+        result["persisted_id"] = save_run(result, analysis)
     st.markdown('<div class="telemetry"><div class="metric"><b>' + result["mode"] + '</b><span>runtime mode</span></div><div class="metric"><b>' + str(result["elapsed"]) + 's</b><span>latency</span></div><div class="metric"><b>' + str(len(result.get("sources", []))).zfill(2) + '</b><span>evidence nodes</span></div><div class="metric"><b>' + html.escape(analysis["query_class"]["track"]) + '</b><span>compute track</span></div></div>', unsafe_allow_html=True)
     st.markdown('<div class="section-label">00 / agent mesh telemetry</div>', unsafe_allow_html=True)
     cards = []
