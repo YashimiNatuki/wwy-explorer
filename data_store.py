@@ -30,3 +30,16 @@ def recent_runs(limit: int = 20) -> list[dict[str, Any]]:
     with _connect() as connection:
         rows = connection.execute("SELECT id, query, mode, depth, created_at FROM research_runs ORDER BY created_at DESC, id DESC LIMIT ?", (max(1, min(limit, 100)),)).fetchall()
     return [{"id": row[0], "query": row[1], "mode": row[2], "depth": row[3], "created_at": row[4]} for row in rows]
+
+
+def load_run(run_id: int | None = None) -> dict[str, Any] | None:
+    with _connect() as connection:
+        if run_id is None:
+            row = connection.execute("SELECT id, payload FROM research_runs ORDER BY created_at DESC, id DESC LIMIT 1").fetchone()
+        else:
+            row = connection.execute("SELECT id, payload FROM research_runs WHERE id = ?", (run_id,)).fetchone()
+    if not row:
+        return None
+    payload = json.loads(row[1])
+    payload["run_id"] = row[0]
+    return payload

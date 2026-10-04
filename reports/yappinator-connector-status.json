@@ -1,0 +1,34 @@
+{
+  "connectors": [
+    {
+      "key": "web",
+      "label": "Web research",
+      "kind": "provider",
+      "status": "DEMO",
+      "detail": "Google CSE + LLM adapter",
+      "endpoint": ""
+    },
+    {
+      "key": "local",
+      "label": "Local signal cache",
+      "kind": "storage",
+      "status": "READY",
+      "detail": "session-safe, ephemeral cache",
+      "endpoint": ""
+    },
+    {
+      "key": "onion",
+      "label": "Onion gateway",
+      "kind": "optional",
+      "status": "OFF",
+      "detail": "Optional Tor gateway; disabled until an approved proxy/search endpoint is configured",
+      "endpoint": ""
+    }
+  ],
+  "onion_probe": {
+    "status": "SKIPPED",
+    "detail": "TOR_PROXY_URL and ONION_SEARCH_URL are not configured",
+    "proxy_configured": false,
+    "search_configured": false
+  }
+}

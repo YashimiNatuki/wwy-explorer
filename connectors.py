@@ -3,6 +3,8 @@ from __future__ import annotations
 import hashlib
 import os
 import re
+import urllib.error
+import urllib.request
 from dataclasses import asdict, dataclass
 from datetime import datetime, timezone
 from typing import Any
@@ -33,6 +35,23 @@ def connector_registry() -> list[ConnectorStatus]:
 
 def connector_snapshot() -> list[dict[str, Any]]:
     return [asdict(item) for item in connector_registry()]
+
+
+def probe_onion_gateway(timeout: float = 3.0) -> dict[str, Any]:
+    """Probe the configured onion search endpoint without hiding missing Tor config."""
+    proxy_url = os.getenv("TOR_PROXY_URL", "")
+    search_url = os.getenv("ONION_SEARCH_URL", "")
+    if not proxy_url or not search_url:
+        return {"status": "SKIPPED", "detail": "TOR_PROXY_URL and ONION_SEARCH_URL are not configured", "proxy_configured": bool(proxy_url), "search_configured": bool(search_url)}
+    opener = urllib.request.build_opener(urllib.request.ProxyHandler({"http": proxy_url, "https": proxy_url}))
+    request = urllib.request.Request(search_url, headers={"User-Agent": "YappinaTor-Onion-Probe/1.0"})
+    try:
+        with opener.open(request, timeout=timeout) as response:
+            return {"status": "ONLINE", "http_status": response.status, "detail": "Configured onion search endpoint responded", "proxy_configured": True, "search_configured": True}
+    except urllib.error.HTTPError as exc:
+        return {"status": "ENDPOINT_ERROR", "http_status": exc.code, "detail": str(exc), "proxy_configured": True, "search_configured": True}
+    except Exception as exc:  # noqa: BLE001 - probe must report connector failure, not crash UI
+        return {"status": "OFFLINE", "detail": f"{type(exc).__name__}: {exc}", "proxy_configured": True, "search_configured": True}
 
 
 def source_envelope(sources: list[dict[str, Any]], *, page: int = 1, page_size: int = 25) -> dict[str, Any]:

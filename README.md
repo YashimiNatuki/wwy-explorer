@@ -51,4 +51,14 @@ Rezultat se može izvesti kao Markdown, JSON evidence envelope ili samostalni HT
 
 Onion pretraga je **opt-in connector**, ne podrazumevano uključena. Aktivira se tek kada administrator konfiguriše `TOR_PROXY_URL` i `ONION_SEARCH_URL`; aplikacija ne tvrdi da može da pristupi onion mreži bez tog gateway-a i ne zaobilazi autentikaciju, rate limite ili zaštite izvora.
 
+`probe_onion_gateway()` sada radi stvarni HTTP probe kroz konfigurisan proxy i vraća `SKIPPED`, `ONLINE`, `OFFLINE` ili `ENDPOINT_ERROR`. U trenutnom sandboxu oba endpointa su namjerno **NOT_CONFIGURED**, pa je online test potvrđen kroz lokalni proxy stub, ne kroz izmišljeni javni onion servis.
+
+Kompletan report iz SQLite baze generiše se ovako:
+
+```bash
+python generate_reports.py --out-dir reports
+```
+
+Dobijaju se `yappinator-latest.md`, `yappinator-latest.html` i `yappinator-connector-status.json`.
+
 Ulazni ekran ima filmski Cyber Ultra Orc Cow access-lock. To je vizuelni operational gate, ne zamena za stvarni login, firewall ili account security.

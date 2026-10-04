@@ -10,7 +10,7 @@ from typing import Any
 import streamlit as st
 
 from analysis_engine import build_html_report, build_json_report, build_report, run_agent_pipeline
-from connectors import connector_snapshot
+from connectors import connector_snapshot, probe_onion_gateway
 from data_store import recent_runs, save_run
 
 APP_NAME = "YAPPINATOR"
@@ -244,6 +244,8 @@ with st.sidebar:
     st.markdown('<div class="sidebar-title">Connector matrix</div>', unsafe_allow_html=True)
     for connector in connector_snapshot():
         st.markdown(f'<div class="history-row"><span>{html.escape(connector["status"])}</span>{html.escape(connector["label"])}<small> · {html.escape(connector["detail"])}</small></div>', unsafe_allow_html=True)
+    onion_probe = probe_onion_gateway()
+    st.markdown(f'<div class="history-row"><span>{html.escape(onion_probe["status"])}</span>Onion probe<small> · {html.escape(onion_probe["detail"])}</small></div>', unsafe_allow_html=True)
     st.markdown('<div class="sidebar-title">Agent mesh</div>', unsafe_allow_html=True)
     st.markdown('<span class="pill">SCOUT</span><span class="pill">FORENSICS</span><span class="pill">SKEPTIC</span><span class="pill">SYNTH</span><span class="pill">REPORT SMITH</span><span class="pill">COMPUTE CORE</span><span class="pill">GATEWAY</span>', unsafe_allow_html=True)
     st.markdown('<p class="sidebar-copy">Bounded agents inspect one evidence envelope. Compute Core adds programming/computational classification; Gateway keeps routing and provenance inspectable.</p>', unsafe_allow_html=True)
