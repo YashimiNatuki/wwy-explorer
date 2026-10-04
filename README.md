@@ -39,7 +39,7 @@ Posle svakog research pass-a, `analysis_engine.py` pokreće pet transparentnih, 
 
 ## Maksimalni research režim
 
-Sidebar sada nudi tri dubine: **Scout**, **Deep** i **Forensic**. Forensic dodaje source-quality ranking, contradiction radar, query plan i risk flags. Jezički sloj je podrazumevano **Crnogorski**, uz **Romani (beta)** za postepenu lokalizaciju Đinđere Minđere sistema i English fallback. Romani terminologija je jasno označena kao beta da se ne bi izmišljala lokalna varijanta jezika bez ljudske revizije.
+Sidebar sada nudi tri dubine: **Scout**, **Deep** i **Forensic**. Forensic dodaje source-quality ranking, contradiction radar, query plan i risk flags. Jezički sloj je podrazumevano **Srpski**, uz **Romani (beta)** za postepenu lokalizaciju Đinđere Minđere sistema i English fallback.
 
 ## YappinaTor agent orchestration
 
@@ -62,3 +62,7 @@ python generate_reports.py --out-dir reports
 Dobijaju se `yappinator-latest.md`, `yappinator-latest.html` i `yappinator-connector-status.json`.
 
 Ulazni ekran ima filmski Cyber Ultra Orc Cow access-lock. To je vizuelni operational gate, ne zamena za stvarni login, firewall ili account security.
+
+## Defensive Kali posture
+
+`security_lab.py` uvodi odbrambeni audit sloj: source secret scan, obavezni module check, SQLite `PRAGMA integrity_check`, connector health i onion probe status. Namerno nema exploit payloads, credential harvesting, persistence mehanizama ili neovlašćenog skeniranja; “Kali level” ovde znači disciplinovan defensive engineering i reproducibilnu proveru sistema.

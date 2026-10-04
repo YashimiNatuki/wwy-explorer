@@ -12,6 +12,7 @@ import streamlit as st
 from analysis_engine import build_html_report, build_json_report, build_report, run_agent_pipeline
 from connectors import connector_snapshot, probe_onion_gateway
 from data_store import recent_runs, save_run
+from security_lab import run_defensive_audit
 
 APP_NAME = "YAPPINATOR"
 SIGNATURE = "CYBER ULTRA ORC COW"
@@ -22,7 +23,7 @@ EXAMPLES = [
 ]
 ACCESS_CODE = "YAPPINATOR"
 LOCALE_COPY = {
-    "Crnogorski": {"subtitle": "istraživački kokpit za napredne korisnike", "query": "istraživački upit", "run": "POKRENI ISTRAŽIVANJE  →", "empty": "NEMA AKTIVNOG SIGNALA", "empty_copy": "Unesi pitanje ili izaberi brzu probu. Forensic režim razdvaja dokaz, rizik i neizvjesnost.", "report": "PREUZMI AUTOMATSKI IZVJEŠTAJ", "demo": "demo mreža online", "hero_a": "PRESIJEČI", "hero_b": "ŠUM.", "hero_copy": "Pretraži, pročitaj i sabij web u dossier sa tragom izvora. Bez lažne sigurnosti. Samo oštriji kokpit za ljude koji traže signal."},
+    "Srpski": {"subtitle": "istraživački kokpit za napredne korisnike", "query": "istraživački upit", "run": "POKRENI ISTRAŽIVANJE  →", "empty": "NEMA AKTIVNOG SIGNALA", "empty_copy": "Unesi pitanje ili izaberi brzu probu. Forensic režim razdvaja dokaze, rizik i neizvesnost.", "report": "PREUZMI AUTOMATSKI IZVEŠTAJ", "demo": "demo mreža online", "hero_a": "PRESECI", "hero_b": "ŠUM.", "hero_copy": "Pretraži, pročitaj i sažmi web u dossier sa tragom izvora. Bez lažne sigurnosti. Samo oštriji kokpit za ljude koji traže signal."},
     "Romani (beta)": {"subtitle": "Đinđere Minđere · Romani jezički sloj u beta fazi", "query": "istraživački upit / Romani beta", "run": "POKRENI ISTRAŽIVANJE  →", "empty": "NEMA AKTIVNOG SIGNALA", "empty_copy": "Romani terminologija se uvodi postepeno; pregledaj rezultate i označi izraze za dalju lokalizaciju.", "report": "PREUZMI AUTOMATSKI IZVJEŠTAJ", "demo": "demo mreža online", "hero_a": "PRESIJEČI", "hero_b": "ŠUM.", "hero_copy": "Đinđere Minđere jezički sloj je u beta fazi. Rezultati ostaju transparentni i spremni za ljudsku jezičku reviziju."},
     "English": {"subtitle": "research cockpit for advanced users", "query": "research query", "run": "RUN RESEARCH  →", "empty": "NO ACTIVE SIGNAL", "empty_copy": "Enter a question or choose a quick probe. Forensic mode separates evidence, risk and uncertainty.", "report": "DOWNLOAD AUTO REPORT", "demo": "demo mesh online", "hero_a": "CUT THROUGH", "hero_b": "THE NOISE.", "hero_copy": "Search, read and compress the web into a source-aware dossier. No fake certainty. No hidden keys. Just a sharper cockpit for people who want the signal."},
 }
@@ -229,15 +230,15 @@ if "history" not in st.session_state:
 if "result" not in st.session_state:
     st.session_state.result = None
 
-locale = st.sidebar.selectbox("Language layer / jezički sloj", list(LOCALE_COPY), index=0)
+locale = st.sidebar.selectbox("Jezik / language layer", list(LOCALE_COPY), index=0)
 copy = LOCALE_COPY[locale]
 
 with st.sidebar:
     st.markdown('<div class="wwy-mark">YT</div>', unsafe_allow_html=True)
-    st.markdown('<div class="sidebar-title">Runtime controls</div>', unsafe_allow_html=True)
-    mode = st.selectbox("Signal mode", ["Auto", "Demo", "Live"], index=0, help="Auto uses live mode only when all provider credentials are configured.")
-    depth = st.radio("Research depth", ["Scout", "Deep", "Forensic"], horizontal=True)
-    st.markdown('<div class="sidebar-title">Capability matrix</div>', unsafe_allow_html=True)
+    st.markdown('<div class="sidebar-title">Kontrole sistema</div>', unsafe_allow_html=True)
+    mode = st.selectbox("Režim signala", ["Auto", "Demo", "Live"], index=0, help="Auto koristi live režim samo kada su svi provider kredencijali podešeni.")
+    depth = st.radio("Dubina istraživanja", ["Scout", "Deep", "Forensic"], horizontal=True)
+    st.markdown('<div class="sidebar-title">Matrica sposobnosti</div>', unsafe_allow_html=True)
     live_ready = has_live_credentials()
     st.markdown(f'<span class="pill">{"LIVE READY" if live_ready else "DEMO READY"}</span><span class="pill">LOCAL HISTORY</span><span class="pill">SOURCE TRACE</span>', unsafe_allow_html=True)
     st.markdown('<p class="sidebar-copy">YappinaTor never ships API keys in source. Demo mode is intentional: it keeps the cockpit usable before the provider mesh is connected.</p>', unsafe_allow_html=True)
@@ -246,6 +247,10 @@ with st.sidebar:
         st.markdown(f'<div class="history-row"><span>{html.escape(connector["status"])}</span>{html.escape(connector["label"])}<small> · {html.escape(connector["detail"])}</small></div>', unsafe_allow_html=True)
     onion_probe = probe_onion_gateway()
     st.markdown(f'<div class="history-row"><span>{html.escape(onion_probe["status"])}</span>Onion probe<small> · {html.escape(onion_probe["detail"])}</small></div>', unsafe_allow_html=True)
+    audit = run_defensive_audit()
+    st.markdown('<div class="sidebar-title">Defensive lab // Kali posture</div>', unsafe_allow_html=True)
+    st.markdown(f'<span class="pill">{html.escape(audit["status"])}</span><span class="pill">DB {html.escape(audit["db_integrity"])}</span><span class="pill">{audit["scanned_files"]} FILES</span>', unsafe_allow_html=True)
+    st.markdown('<p class="sidebar-copy">Samo odbrambeni audit: secret scan, module integrity, SQLite check i connector health. Nema exploit payloada ni neovlašćenog skeniranja.</p>', unsafe_allow_html=True)
     st.markdown('<div class="sidebar-title">Agent mesh</div>', unsafe_allow_html=True)
     st.markdown('<span class="pill">SCOUT</span><span class="pill">FORENSICS</span><span class="pill">SKEPTIC</span><span class="pill">SYNTH</span><span class="pill">REPORT SMITH</span><span class="pill">COMPUTE CORE</span><span class="pill">GATEWAY</span>', unsafe_allow_html=True)
     st.markdown('<p class="sidebar-copy">Bounded agents inspect one evidence envelope. Compute Core adds programming/computational classification; Gateway keeps routing and provenance inspectable.</p>', unsafe_allow_html=True)
