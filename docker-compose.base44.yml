@@ -1,0 +1,27 @@
+services:
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile.base44
+    command: ["streamlit", "run", "web_explorer.py", "--server.address", "0.0.0.0", "--server.port", "3000", "--server.headless", "true", "--server.enableCORS", "false", "--server.enableXsrfProtection", "false", "--server.fileWatcherType", "poll"]
+    ports:
+      - "3000:3000"
+    volumes:
+      - .:/app
+    environment:
+      - BASE44_PREVIEW_MODE
+      - YAPPINATOR_DB_PATH=/app/.yappinator/yappinator.db
+    env_file:
+      - ./.env.base44-defaults
+      - /run/base44/app.env
+    healthcheck:
+      test: ["CMD-SHELL", "python -c \"import urllib.request; urllib.request.urlopen('http://127.0.0.1:3000/_stcore/health', timeout=3)\" || exit 1"]
+      interval: 15s
+      timeout: 5s
+      start_period: 40s
+      retries: 3
+    restart: on-failure
+    labels:
+      base44.project: "YappinaTor WWY Explorer"
+      base44.kind: "web"
+      base44.port: "3000"

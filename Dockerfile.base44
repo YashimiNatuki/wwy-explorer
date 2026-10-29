@@ -1,0 +1,29 @@
+# Base44 sandbox image for the Streamlit app.
+# Only the Python dependencies are baked in; the repository source is bind-mounted
+# at run time by docker-compose.base44.yml so edits show up without a rebuild.
+FROM python:3.11-slim
+
+ENV PYTHONUNBUFFERED=1 \
+    PIP_NO_CACHE_DIR=1 \
+    PIP_DISABLE_PIP_VERSION_CHECK=1
+
+WORKDIR /app
+
+# chroma-hnswlib (pulled in by the pinned chromadb==0.4.3) has no cp311 wheel and
+# compiles from source; the rest of the pins install from wheels.
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends g++ gcc python3-dev \
+    && rm -rf /var/lib/apt/lists/*
+
+COPY requirements.txt ./
+RUN pip install -r requirements.txt
+
+EXPOSE 3000
+
+CMD ["streamlit", "run", "web_explorer.py", \
+     "--server.address", "0.0.0.0", \
+     "--server.port", "3000", \
+     "--server.headless", "true", \
+     "--server.enableCORS", "false", \
+     "--server.enableXsrfProtection", "false", \
+     "--server.fileWatcherType", "poll"]
