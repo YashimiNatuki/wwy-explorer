@@ -1,0 +1,22 @@
+{
+  "previewPort": 3000,
+  "healthPath": "/_stcore/health",
+  "startCommand": "docker compose -f docker-compose.base44.yml up -d",
+  "secrets": [
+    {
+      "name": "GOOGLE_API_KEY",
+      "description": "Optional. Google API key for the Custom Search JSON API; enables LIVE web research together with GOOGLE_CSE_ID and OPENAI_API_KEY. Without the provider keys the app runs in its intentional DEMO mode.",
+      "requiredAtBoot": false
+    },
+    {
+      "name": "GOOGLE_CSE_ID",
+      "description": "Optional. Programmable Search Engine ID (cx) used with GOOGLE_API_KEY for LIVE web research.",
+      "requiredAtBoot": false
+    },
+    {
+      "name": "OPENAI_API_KEY",
+      "description": "Optional. OpenAI API key for the LIVE LangChain research adapter. Demo mode works without it.",
+      "requiredAtBoot": false
+    }
+  ]
+}
